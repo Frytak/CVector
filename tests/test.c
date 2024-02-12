@@ -32,5 +32,6 @@ int main() {
     result += test_func("vec_push", vec_push_test); printf("\n");
     result += test_func("vec_push_multi", vec_push_multi_test); printf("\n");
     printf("\nThe overall result of the tests: ");
-    if (result == 0) { passed(); } else { failed(0); }
+    if (result == 0) { passed(); } else { failed(result = 1); }
+    return result;
 }

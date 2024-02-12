@@ -17,3 +17,6 @@ ECHO Launching tests...
 ECHO:
 
 test.exe
+
+:: Return the tests' success value
+EXIT /B %ERRORLEVEL%

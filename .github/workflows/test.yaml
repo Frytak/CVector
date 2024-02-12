@@ -1,0 +1,14 @@
+name: Run tests
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Cehckout code
+      uses: actions/checkout@v2
+
+    - name: Run tests
+      run: .\tests\test.bat
