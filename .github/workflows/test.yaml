@@ -12,3 +12,4 @@ jobs:
 
     - name: Run tests
       run: .\tests\test.bat
+      working-directory: tests
