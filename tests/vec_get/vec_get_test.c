@@ -14,38 +14,48 @@
 
 int vec_get_test() {
     int result = 0;
+    Vector vec;
 
-    // Test 1: `vec_get_unchecked`
+    // Test 1: `unchecked` - should contain identical data
     printf("\tTest 1: ");
-    Vector vec1 = vec_new(DATA1_SIZE, (void*)&DATA1, DATA1_LEN);
+    vec = vec_new(DATA1_SIZE, (void*)&DATA1, DATA1_LEN);
 
-    bool got_all1 = true;
-    for (size_t i = 0; i < vec1.len; i++) {
-        if (*(int*)vec_get_unchecked(&vec1, i) != DATA1[i]) { got_all1 = false; };
+    bool contains_all = true;
+    for (size_t i = 0; i < DATA1_LEN; i++) {
+        if (*(int*)vec_get_unchecked(&vec, i) != DATA1[i]) { contains_all = false; };
     }
-    if (got_all1) { passed(); } else { result = 1; failed(result); }
-    vec_drop(&vec1);
+
+    if (contains_all)
+    { passed(); } else { failed(result = 1); }
     printf("\n");
 
-    // Test 2: successfull `vec_get`
+    // Test 2: `unchecked` - shouldn't contain identical data
     printf("\tTest 2: ");
-    Vector vec2 = vec_new(DATA1_SIZE, (void*)&DATA1, DATA1_LEN);
+    vec = vec_new(DATA1_SIZE, (void*)&DATA1, DATA1_LEN);
+    *(int*)vec.data = 9999;
 
-    bool got_all2 = true;
-    for (size_t i = 0; i < vec2.len; i++) {
-        if (*(int*)vec_get(&vec2, i) != DATA1[i]) { got_all2 = false; };
+    contains_all = true;
+    for (size_t i = 0; i < DATA1_LEN; i++) {
+        if (*(int*)vec_get_unchecked(&vec, i) != DATA1[i]) { contains_all = false; };
     }
-    if (got_all2) { passed(); } else { result = 2; failed(result); }
-    vec_drop(&vec2);
+
+    if (!contains_all)
+    { passed(); } else { failed(result = 2); }
     printf("\n");
 
-    // Test 3: out of bounds `vec_get`
+    // Test 3: error handling
     printf("\tTest 3: ");
-    Vector vec3 = vec_new(DATA1_SIZE, (void*)&DATA1, DATA1_LEN);
+    vec = vec_new(DATA1_SIZE, (void*)&DATA1, DATA1_LEN);
+    void *error1 = vec_get(NULL, 0);
+    void *error2 = vec_get(&vec, DATA1_LEN + 3);
+    void *ok = vec_get(&vec, 0);
+    vec.data = NULL;
+    void *error3 = vec_get(&vec, 0);
 
-    if (vec_get(&vec3, DATA1_SIZE + 3) == NULL) { passed(); } else { result = 3; failed(result); }
-    vec_drop(&vec3);
+    if (error1 == NULL && error2 == NULL && ok != NULL && error3 == NULL)
+    { passed(); } else { failed(result = 3); }
     printf("\n");
 
+    vec_drop(&vec);
     return result;
 }

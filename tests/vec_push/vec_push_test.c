@@ -14,45 +14,40 @@
 
 int vec_push_test() {
     int result = 0;
+    Vector vec;
     
     // Test 1: `unchecked` - enough capacity for additional element
     printf("\tTest 1: ");
-    Vector vec1 = vec_new(DATA2_SIZE, (void*)&DATA2, DATA2_LEN);
-    int data1 = 43;
-    vec_push_unchecked(&vec1, (void*)&data1);
+    vec = vec_new(DATA2_SIZE, (void*)&DATA2, DATA2_LEN);
+    vec_push_unchecked(&vec, (void*)&INSERT_DATA1[0]);
 
-    if (vec1.len == DATA1_LEN + 1 && vec1.cap == 8 && *(int*)vec_get_unchecked(&vec1, DATA1_LEN) == data1) { passed(); } else { result = 1; failed(result); }
-    vec_drop(&vec1);
+    if (vec.len == DATA2_LEN+1 && vec.cap == DATA2_CAP && *(int*)vec_get_unchecked(&vec, DATA2_LEN) == INSERT_DATA1[0])
+    { passed(); } else { failed(result = 1); }
     printf("\n");
 
-    // Test 2: not enough capacity for additional elements
-    //printf("\tTest 2: ");
-    //Vector vec2 = vec_new(DATA1_SIZE, (void*)&DATA1, DATA1_LEN);
-    //int data2[] = {43, -94};
-    //vec_push(&vec2, (void*)&data2[0]);
-    //vec_push(&vec2, (void*)&data2[1]);
+    // Test 2: `unchecked` - not enough capacity for additional elements
+    printf("\tTest 2: ");
+    vec = vec_new(DATA1_SIZE, (void*)&DATA1, DATA1_LEN);
+    vec_push_unchecked(&vec, (void*)&INSERT_DATA1[0]);
+    vec_push_unchecked(&vec, (void*)&INSERT_DATA1[1]);
 
-    //if (vec2.len == DATA1_LEN + 2 && vec2.cap == 16 && *(int*)vec_get_unchecked(&vec2, DATA1_LEN) == data2[0] && *(int*)vec_get_unchecked(&vec2, DATA1_LEN + 1) == data2[1]) { passed(); } else { result = 2; failed(result); }
-    //vec_drop(&vec2);
-    //printf("\n");
-
-    // Test 4: Multiple elements at once without enough capacity
-    printf("\tTest 4: ");
-    Vector vec4 = vec_new(DATA1_SIZE, (void*)&DATA1, DATA1_LEN);
-    int data4[] = {43, -94, 12, 87};
-
-    vec_push_multi_unchecked(&vec4, (void*)&data4, 4);
-
-    bool contains_all4 = true;
-    for (int i = DATA1_LEN; i < DATA1_LEN + 4; i++) {
-        if (*(int*)vec_get_unchecked(&vec4, i) != data4[i - DATA1_LEN]) { contains_all4 = false; }
-    }
-
-    if (vec4.len == DATA1_LEN + 4 && vec4.cap == 16 && contains_all4)
-    { passed(); } else { result = 2; failed(result); }
-
-    vec_drop(&vec4);
+    if (vec.len == DATA1_LEN+2 && vec.cap == 16 && *(int*)vec_get_unchecked(&vec, DATA1_LEN) == INSERT_DATA1[0] && *(int*)vec_get_unchecked(&vec, DATA1_LEN+1) == INSERT_DATA1[1])
+    { passed(); } else { failed(result = 2); }
     printf("\n");
 
+    // Test 3: error handling
+    printf("\tTest 3: ");
+    vec = vec_new(DATA1_SIZE, (void*)&DATA1, DATA1_LEN);
+    VEC_PUSH_RESULT error1 = vec_push(NULL, (void*)&INSERT_DATA1[0]);
+    VEC_PUSH_RESULT error2 = vec_push(&vec, NULL);
+    VEC_PUSH_RESULT ok = vec_push(&vec, (void*)&INSERT_DATA1[0]);
+    vec.data = NULL;
+    VEC_PUSH_RESULT error3 = vec_push(&vec, (void*)&INSERT_DATA1[0]);
+
+    if (error1 == VPR_INVALID_VEC && error2 == VPR_INVALID_DATA && ok == VPR_OK && error3 == VPR_INVALID_VEC_DATA)
+    { passed(); } else { failed(result = 3); }
+    printf("\n");
+
+    vec_drop(&vec);
     return result;
 }

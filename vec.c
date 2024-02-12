@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include "vec.h"
 
-/// Returns the `cap` that fits the `amount` and is a power of two
+/// Returns a capacity that fits the given amount and is a power of two
 size_t _vec_get_p2_cap(size_t amount) {
     if (amount == 0) { return 0; }
 
@@ -25,8 +25,11 @@ void vec_drop(Vector *vec) {
     vec->len = 0;
 }
 
-/// Allocates or reallocates a specific `cap` for the `Vector`
-void vec_reserve(Vector *vec, size_t cap) {
+/// Reserves a specific capacity for the vector
+///
+/// You must ensure that:
+/// - `vec` is not NULL
+void vec_reserve_unchecked(Vector *vec, size_t cap) {
     vec->cap = cap;
 
     if (cap == 0) {
@@ -42,16 +45,22 @@ void vec_reserve(Vector *vec, size_t cap) {
 
     if (vec->len > vec->cap) { vec->len = vec->cap; }
 }
+/// Reserves a specific capacity for the vector
+VEC_RESERVE_RESULT vec_reserve(Vector *vec, size_t cap) {
+    if (vec == NULL) { return VRR_INVALID_VEC; }
+    vec_reserve_unchecked(vec, cap);
 
-/// Reallocates double the current `cap`
-void _vec_double(Vector *vec) {
-    // Allocate double the capacity
-    vec_reserve(vec, vec->cap * 2);
+    return VRR_OK;
 }
 
-/// Initializes the `Vecotr` with the given data
-int vec_init(Vector *vec, size_t size, void *data, size_t amount) {
-    if (vec == NULL) { return 1; }
+/// Reallocates double of the current capacity
+void _vec_double(Vector *vec) {
+    vec_reserve_unchecked(vec, vec->cap * 2);
+}
+
+/// Initializes the vector with the given data if any
+VEC_INIT_RESULT vec_init(Vector *vec, size_t size, void *data, size_t amount) {
+    if (vec == NULL) { return VIR_INVALID_VEC; }
 
     // Assign the default data
     vec->len = 0;
@@ -85,7 +94,7 @@ int vec_init(Vector *vec, size_t size, void *data, size_t amount) {
         vec->len = 0;
     };
 
-    return 0;
+    return VIR_OK;
 }
 
 /// Create a new `Vector` with the given data
@@ -97,25 +106,39 @@ Vector vec_new(size_t size, void *data, size_t amount) {
 
 /// Returns a pointer to the element of the specified index
 ///
-/// Doesn't check whether the index is out of bounds
+/// You must ensure that:
+/// - `vec` is not NULL
+/// - `vec->data` is not NULL
+/// - `index` is not out of bounds
 void *vec_get_unchecked(Vector *vec, size_t index) {
     return vec->data + (vec->size * index);
 }
 
-/// Returns a pointer to the element of the specified index or a NULL
-/// pointer if the index is out of bounds
+/// Returns a pointer to the element of the specified index or NULL if:
+///
+/// - `vec` is NULL
+/// - `vec->data` is NULL
+/// - `index` is out of bounds
 void *vec_get(Vector *vec, size_t index) {
-    if (vec->len-1 < index) { return NULL; }
+    if (vec == NULL) { return NULL; }
+    if (vec->data == NULL) { return NULL; }
+    if (index > vec->len-1) { return NULL; }
     return vec_get_unchecked(vec, index);
 }
 
+/// Pushes the provided data as the last element of the vector
+///
+/// You must ensure that:
+/// - `vec` is not NULL
+/// - `vec->data` is not NULL
+/// - `data` is not NULL
 void vec_push_unchecked(Vector *vec, void *data) {
     ++vec->len;
 
     // Double the capacity if there is not enough space
     if (vec->len > vec->cap) {
         if (vec->cap == 0) {
-            vec_reserve(vec, 1);
+            vec_reserve_unchecked(vec, 1);
         } else {
             _vec_double(vec);
         }
@@ -125,37 +148,48 @@ void vec_push_unchecked(Vector *vec, void *data) {
     memcpy(vec_get_unchecked(vec, vec->len - 1), data, vec->size);
 }
 
-/// Push the provided data as the last element of the vector
-/// If the provided data is NULL, errors returning `1`
-int vec_push(Vector *vec, void *data) {
-    if (data == NULL) { return 1; }
+/// Pushes the provided data as the last element of the vector
+VEC_PUSH_RESULT vec_push(Vector *vec, void *data) {
+    if (vec == NULL) { return VPR_INVALID_VEC; }
+    if (vec->data == NULL) { return VPR_INVALID_VEC_DATA; }
+    if (data == NULL) { return VPR_INVALID_DATA; }
     vec_push_unchecked(vec, data);
 
-    return 0;
+    return VPR_OK;
 }
 
+/// Pushes the provided data as the last elements of the vector
+///
+/// You must ensure that:
+/// - `vec` is not NULL
+/// - `vec->data` is not NULL
+/// - `data` is not NULL
 void vec_push_multi_unchecked(Vector *vec, void *data, size_t amount) {
+    if (amount == 0) { return; }
     vec->len += amount;
 
     // Change the capacity if there is not enough space
     if (vec->len > vec->cap) {
-        vec_reserve(vec, _vec_get_p2_cap(vec->len));
+        vec_reserve_unchecked(vec, _vec_get_p2_cap(vec->len));
     }
 
     // Copy the data
     memcpy(vec_get_unchecked(vec, vec->len - amount), data, vec->size * amount);
 }
 
-int vec_push_multi(Vector *vec, void *data, size_t amount) {
-    if (data == NULL) { return 1; }
+/// Pushes the provided data as the last elements of the vector
+VEC_PUSH_RESULT vec_push_multi(Vector *vec, void *data, size_t amount) {
+    if (vec == NULL) { return VPR_INVALID_VEC; }
+    if (vec->data == NULL) { return VPR_INVALID_VEC_DATA; }
+    if (data == NULL) { return VPR_INVALID_DATA; }
     vec_push_multi_unchecked(vec, data, amount);
 
     return 0;
 }
 
-VBS_RET vec_binary_search(Vector *vec, VBS_COMP (*comp)(void *vec_item), size_t beg, size_t end, size_t *found) {
-    if (vec->len < end || vec->len < beg) { return VBS_OUT_OF_BOUNDS; }
-    if (beg > end) { return VBS_INVALID_INPUT; }
+VEC_BINARY_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (*comp)(void *vec_item), size_t beg, size_t end, size_t *found) {
+    if (vec->len < end || vec->len < beg) { return VBSR_OUT_OF_BOUNDS; }
+    if (beg > end) { return VBSR_INVALID_INPUT; }
     size_t new_beg = beg;
     size_t new_end = end;
 
@@ -163,24 +197,24 @@ VBS_RET vec_binary_search(Vector *vec, VBS_COMP (*comp)(void *vec_item), size_t 
         size_t middle = (new_end + new_beg) / 2;
         char* current_char = vec->data + (vec->size * middle);
 
-        if (middle == new_end || middle == new_beg) { return VBS_NOT_FOUND; }
+        if (middle == new_end || middle == new_beg) { return VBSR_NOT_FOUND; }
 
         switch (comp(current_char)) {
-            case VBS_COMP_LEFT: { new_end = middle; break; }
-            case VBS_COMP_FOUND: { *found = middle; return VBS_OK; }
-            case VBS_COMP_RIGHT: { new_beg = middle; break; }
-            default: { return VBS_COMP_INVALID_OUTPUT; }
+            case VBSCR_LEFT: { new_end = middle; break; }
+            case VBSCR_FOUND: { *found = middle; return VBSR_OK; }
+            case VBSCR_RIGHT: { new_beg = middle; break; }
+            default: { return VBSR_COMP_INVALID_OUTPUT; }
         }
     }
 
-    return VBS_NOT_FOUND;
+    return VBSR_NOT_FOUND;
 }
 
-VBS_COMP vec_rf_comp(void *character) {
+VEC_BINARY_SEARCH_COMP_RESULT vec_rf_comp(void *character) {
     switch (*(char*)character) {
-        case '\n': { return VBS_COMP_FOUND; }
-        case 0: { return VBS_COMP_LEFT; }
-        default: { return VBS_COMP_RIGHT; }
+        case '\n': { return VBSCR_FOUND; }
+        case 0: { return VBSCR_LEFT; }
+        default: { return VBSCR_RIGHT; }
     }
 }
 
@@ -216,7 +250,7 @@ Vector vec_copy(Vector *vec) {
     Vector copy;
     vec_init(&copy, vec->size, vec->data, vec->len);
     // TODO: Check if this is needed
-    vec_reserve(&copy, vec->cap);
+    vec_reserve_unchecked(&copy, vec->cap);
     return copy;
 }
 
@@ -255,7 +289,7 @@ int vec_read_file(Vector *vec, char file_name[], size_t *bytes_written, bool min
             char* fgets_ret;
 
             size_t shift = line.cap - 1;
-            vec_reserve(&line, ((line.cap - 2) * 2) + 2);
+            vec_reserve_unchecked(&line, ((line.cap - 2) * 2) + 2);
             size_t cap = shift;
             if (i == 0) { shift = 0; cap = line.cap; }
             fgets_ret = fgets(line.data + shift * line.size, cap, file);
@@ -276,11 +310,11 @@ int vec_read_file(Vector *vec, char file_name[], size_t *bytes_written, bool min
             line.len = line.cap;
 
             switch (vec_binary_search(&line, &vec_rf_comp, line.cap/2, line.cap, &index)) {
-                case VBS_OK: { vec_reserve(&line, line.cap - 2); goto line_read; }
-                case VBS_NOT_FOUND: { break; }
-                case VBS_INVALID_INPUT: { printf("ERROR: Invalid input."); break; }
-                case VBS_OUT_OF_BOUNDS: { printf("ERROR: Out of bounds."); break; }
-                case VBS_COMP_INVALID_OUTPUT: { printf("ERROR: Comp invalid output."); break; }
+                case VBSR_OK: { vec_reserve_unchecked(&line, line.cap - 2); goto line_read; }
+                case VBSR_NOT_FOUND: { break; }
+                case VBSR_INVALID_INPUT: { printf("ERROR: Invalid input."); break; }
+                case VBSR_OUT_OF_BOUNDS: { printf("ERROR: Out of bounds."); break; }
+                case VBSR_COMP_INVALID_OUTPUT: { printf("ERROR: Comp invalid output."); break; }
                 default: { printf("ERROR: In binary search"); break; }
             }
         }

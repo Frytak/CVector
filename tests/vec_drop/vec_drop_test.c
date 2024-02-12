@@ -16,7 +16,7 @@ int vec_drop_test() {
     int result = 0;
     Vector vec;
 
-    // Test 1: Drop a `Vector` with NULL `data`
+    // Test 1: Drop a `Vector` with NULL data
     printf("\tTest 1: ");
     vec = vec_new(DATA1_SIZE, NULL, 0);
 
@@ -26,7 +26,7 @@ int vec_drop_test() {
 
     printf("\n");
 
-    // Test 2: Drop a `Vector` with some `data`
+    // Test 2: Drop a `Vector` with some data
     printf("\tTest 2: ");
     vec = vec_new(DATA1_SIZE, (void*)DATA1, DATA1_SIZE);
 
@@ -36,5 +36,6 @@ int vec_drop_test() {
 
     printf("\n");
 
+    vec_drop(&vec);
     return result;
 }

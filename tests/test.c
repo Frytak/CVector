@@ -10,6 +10,7 @@
 #include "./vec_new/vec_new_test.h"
 #include "./vec_get/vec_get_test.h"
 #include "./vec_push/vec_push_test.h"
+#include "./vec_push_multi/vec_push_multi_test.h"
 
 #include <stdio.h>
 
@@ -29,6 +30,7 @@ int main() {
     result += test_func("vec_new", vec_new_test); printf("\n");
     result += test_func("vec_get", vec_get_test); printf("\n");
     result += test_func("vec_push", vec_push_test); printf("\n");
+    result += test_func("vec_push_multi", vec_push_multi_test); printf("\n");
     printf("\nThe overall result of the tests: ");
-    if (result == 0) { passed(); } else { failed(result); }
+    if (result == 0) { passed(); } else { failed(0); }
 }
