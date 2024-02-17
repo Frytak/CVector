@@ -47,7 +47,7 @@ typedef enum {
     // `beg` is bigger than `end`
     CF_INVALID_INPUT,
 
-    // the `comp` function returns a value that is boolean (true, false) (1, 0)
+    // the `comp` function should return a value that is boolean (1, 0)
     CF_COMP_INVALID_OUTPUT,
 } COMP_FUNC_RET;
 
@@ -84,6 +84,35 @@ typedef enum {
     VRR_INVALID_VEC,
 } VEC_RESERVE_RESULT;
 
+typedef enum {
+    // No errors, copy successful
+    VCR_OK,
+
+    // Source vector is invalid
+    VCR_INVALID_SOURCE,
+
+    // Destination vector is invalid
+    VCR_INVALID_DESTINATION,
+
+    // Unknown error leading to an unsuccessful copy.
+    // This error might be caused by data races, cosmic rays or other such stuff.
+    // Good luck!
+    //
+    // WARNING! This error only checks if `len`, `cap` and `size` are copied properly, not the contents.
+    VCR_UNKNOWN,
+} VEC_COPY_RESULT;
+
+typedef enum {
+    // No errors, vectors compared successfully
+    VER_OK,
+
+    // First vector is invalid
+    VER_INVALID_SOURCE,
+
+    // Second vector is invalid
+    VER_INVALID_DESTINATION,
+} VEC_EQ_RESULT;
+
 
 /// A Vector consisting of:
 ///   - len: amount of elements that the vector currently holds
@@ -103,33 +132,33 @@ size_t _vec_get_p2_cap(size_t amount);
 
 void vec_drop(Vector *vec);
 
+void vec_reserve_unchecked(Vector *vec, size_t cap);
 VEC_RESERVE_RESULT vec_reserve(Vector *vec, size_t cap);
 
 void _vec_double(Vector *vec);
 
 VEC_INIT_RESULT vec_init(Vector *vec, size_t size, void *data, size_t amount);
-
 Vector vec_new(size_t size, void *data, size_t amount);
 
 void *vec_get_unchecked(Vector *vec, size_t index);
-
 void *vec_get(Vector *vec, size_t index);
 
 void vec_push_unchecked(Vector *vec, void *data);
-
 VEC_PUSH_RESULT vec_push(Vector *vec, void *data);
-
 void vec_push_multi_unchecked(Vector *vec, void *data, size_t amount);
-
 VEC_PUSH_RESULT vec_push_multi(Vector *vec, void *data, size_t amount);
 
-VEC_BINARY_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (*comp)(void *vec_item), size_t beg, size_t end, size_t *found);
+VEC_BINARY_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched);
+VEC_BINARY_SEARCH_COMP_RESULT vbsc_int(void *current_num, void *searched_num);
 
-COMP_FUNC_RET vec_find_first(Vector *vec, bool (*comp)(void *vec_item), size_t beg, size_t end, size_t *index);
+COMP_FUNC_RET vec_find_first(Vector *vec, bool (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched);
+bool vc_int(void *current_num, void *searched_num);
 
-COMP_FUNC_RET vec_contains(Vector *vec, bool (*comp)(void *vec_item, void *provided_item), void *item, size_t beg, size_t end, size_t *index);
+bool vec_is_partial_eq(Vector *vec1, Vector *vec2);
+bool vec_is_eq(Vector *vec1, Vector *vec2);
 
-Vector vec_copy(Vector *vec);
+Vector vec_copy_unchecked(Vector *vec);
+VEC_COPY_RESULT vec_copy(Vector *source_vec, Vector *destination_vec);
 
 void vec_swap_unchecked(Vector *vec, size_t first_index, size_t second_index);
 

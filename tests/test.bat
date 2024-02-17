@@ -11,6 +11,9 @@ gcc -o test ^
 .\vec_new\vec_new_test.c ^
 .\vec_push\vec_push_test.c ^
 .\vec_push_multi\vec_push_multi_test.c ^
+.\vec_binary_search\vec_binary_search_test.c ^
+.\vec_find_first\vec_find_first_test.c ^
+.\vec_copy\vec_copy_test.c ^
 .\test.c
 
 ECHO Launching tests...

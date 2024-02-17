@@ -5,4 +5,4 @@
 #define RESET "\033[0m"
 
 void passed();
-int failed(int code);
+int failed(int *code);

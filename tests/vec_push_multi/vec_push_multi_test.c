@@ -32,7 +32,7 @@ int vec_push_multi_test() {
     }
 
     if (vec.len == DATA2_LEN+4 && vec.cap == DATA2_CAP && contains_all)
-    { passed(); } else { failed(result = 1); }
+    { passed(); } else { failed(&result); }
     printf("\n");
 
     // Test 2: `unchecked` - multiple elements at once without enough capacity
@@ -51,7 +51,7 @@ int vec_push_multi_test() {
     }
 
     if (vec.len == DATA1_LEN+INSERT_DATA1_LEN && vec.cap == _vec_get_p2_cap(DATA1_LEN+INSERT_DATA1_LEN) && contains_all)
-    { passed(); } else { failed(result = 2); }
+    { passed(); } else { failed(&result); }
     printf("\n");
 
     vec_drop(&vec);

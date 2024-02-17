@@ -22,7 +22,7 @@ int vec_push_test() {
     vec_push_unchecked(&vec, (void*)&INSERT_DATA1[0]);
 
     if (vec.len == DATA2_LEN+1 && vec.cap == DATA2_CAP && *(int*)vec_get_unchecked(&vec, DATA2_LEN) == INSERT_DATA1[0])
-    { passed(); } else { failed(result = 1); }
+    { passed(); } else { failed(&result); }
     printf("\n");
 
     // Test 2: `unchecked` - not enough capacity for additional elements
@@ -32,7 +32,7 @@ int vec_push_test() {
     vec_push_unchecked(&vec, (void*)&INSERT_DATA1[1]);
 
     if (vec.len == DATA1_LEN+2 && vec.cap == 16 && *(int*)vec_get_unchecked(&vec, DATA1_LEN) == INSERT_DATA1[0] && *(int*)vec_get_unchecked(&vec, DATA1_LEN+1) == INSERT_DATA1[1])
-    { passed(); } else { failed(result = 2); }
+    { passed(); } else { failed(&result); }
     printf("\n");
 
     // Test 3: error handling
@@ -45,7 +45,7 @@ int vec_push_test() {
     VEC_PUSH_RESULT error3 = vec_push(&vec, (void*)&INSERT_DATA1[0]);
 
     if (error1 == VPR_INVALID_VEC && error2 == VPR_INVALID_DATA && ok == VPR_OK && error3 == VPR_INVALID_VEC_DATA)
-    { passed(); } else { failed(result = 3); }
+    { passed(); } else { failed(&result); }
     printf("\n");
 
     vec_drop(&vec);

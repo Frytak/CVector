@@ -22,7 +22,7 @@ int vec_drop_test() {
 
     vec_drop(&vec);
     if (vec.len == 0 && vec.cap == 0 && vec.data == NULL && vec.size == DATA1_SIZE)
-    { passed(); } else { result = 1; failed(result); }
+    { passed(); } else { failed(&result); }
 
     printf("\n");
 
@@ -32,7 +32,7 @@ int vec_drop_test() {
 
     vec_drop(&vec);
     if (vec.len == 0 && vec.cap == 0 && vec.data == NULL && vec.size == DATA1_SIZE)
-    { passed(); } else { result = 2; failed(result); }
+    { passed(); } else { failed(&result); }
 
     printf("\n");
 

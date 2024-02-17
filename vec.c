@@ -91,6 +91,7 @@ VEC_INIT_RESULT vec_init(Vector *vec, size_t size, void *data, size_t amount) {
         // Copy the `data` into the `Vector`
         memcpy(vec->data, data, vec->size * amount);
     } else {
+        vec->cap = 0;
         vec->len = 0;
     };
 
@@ -187,7 +188,18 @@ VEC_PUSH_RESULT vec_push_multi(Vector *vec, void *data, size_t amount) {
     return 0;
 }
 
-VEC_BINARY_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (*comp)(void *vec_item), size_t beg, size_t end, size_t *found) {
+/// Performs a binary search on the given vector
+///
+/// The `comp` function will get passed the currently checked
+/// element of a vector, and an additional `searched` parameter
+/// given by the user.
+///
+/// `beg` and `end` are boundries of indexes of where the search
+/// will be performed, `<beg,end)`.
+///
+/// `index` will be assigned to the searched value index if found
+/// otherwise it's left as is.
+VEC_BINARY_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched) {
     if (vec->len < end || vec->len < beg) { return VBSR_OUT_OF_BOUNDS; }
     if (beg > end) { return VBSR_INVALID_INPUT; }
     size_t new_beg = beg;
@@ -197,11 +209,16 @@ VEC_BINARY_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_R
         size_t middle = (new_end + new_beg) / 2;
         char* current_char = vec->data + (vec->size * middle);
 
-        if (middle == new_end || middle == new_beg) { return VBSR_NOT_FOUND; }
+        if (middle == new_end || middle == new_beg) {
+            VEC_BINARY_SEARCH_COMP_RESULT result = comp(current_char, searched);
+            if (result == VBSCR_FOUND) { *index = middle; return VBSR_OK; }
+            if (result != VBSCR_LEFT && result != VBSCR_RIGHT) { return VBSR_COMP_INVALID_OUTPUT; }
+            return VBSR_NOT_FOUND;
+        }
 
-        switch (comp(current_char)) {
+        switch (comp(current_char, searched)) {
             case VBSCR_LEFT: { new_end = middle; break; }
-            case VBSCR_FOUND: { *found = middle; return VBSR_OK; }
+            case VBSCR_FOUND: { *index = middle; return VBSR_OK; }
             case VBSCR_RIGHT: { new_beg = middle; break; }
             default: { return VBSR_COMP_INVALID_OUTPUT; }
         }
@@ -210,21 +227,44 @@ VEC_BINARY_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_R
     return VBSR_NOT_FOUND;
 }
 
-VEC_BINARY_SEARCH_COMP_RESULT vec_rf_comp(void *character) {
-    switch (*(char*)character) {
+/// Comp function of binary search for `ints`
+VEC_BINARY_SEARCH_COMP_RESULT vbsc_int(void *current_num, void *searched_num) {
+    if (*(int*)current_num > *(int*)searched_num) { return VBSCR_LEFT; }
+    if (*(int*)current_num < *(int*)searched_num) { return VBSCR_RIGHT; }
+    if (*(int*)current_num == *(int*)searched_num) { return VBSCR_FOUND; }
+    return -1;
+}
+
+// Comp function for `ints`
+bool vc_int(void *current_num, void *searched_num) {
+    return (*(int*)current_num == *(int*)searched_num);
+}
+
+/// Comp function of binary search for end of line in an zeroed out (from the right side) buffer
+VEC_BINARY_SEARCH_COMP_RESULT vbsc_rf(void *current_char, void *_) {
+    switch (*(char*)current_char) {
         case '\n': { return VBSCR_FOUND; }
         case 0: { return VBSCR_LEFT; }
         default: { return VBSCR_RIGHT; }
     }
 }
 
-COMP_FUNC_RET vec_find_first(Vector *vec, bool (*comp)(void *vec_item), size_t beg, size_t end, size_t *index) {
+/// Performs a linear search on the given vector, returning the
+/// first element it finds.
+///
+/// The `comp` function will get passed the currently checked
+/// element of a vector, and an additional `searched` parameter
+/// given by the user.
+///
+/// `beg` and `end` are boundries of indexes of where the search
+/// will be performed, `<beg,end)`.
+COMP_FUNC_RET vec_find_first(Vector *vec, bool (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched) {
     if (beg > end) { return CF_INVALID_INPUT; }
-    if (end > vec->len-1) { return CF_OUT_OF_BOUNDS; }
+    if (end > vec->len) { return CF_OUT_OF_BOUNDS; }
 
-    for (size_t x = beg; x <= end; x++) {
-        if (comp(vec_get_unchecked(vec, x))) {
-            *index = x;
+    for (size_t x = beg; x < end; x++) {
+        if (comp(vec_get_unchecked(vec, x), searched)) {
+            if (index != NULL) { *index = x; }
             return CF_OK;
         }
     }
@@ -232,26 +272,49 @@ COMP_FUNC_RET vec_find_first(Vector *vec, bool (*comp)(void *vec_item), size_t b
     return CF_NOT_FOUND;
 }
 
-COMP_FUNC_RET vec_contains(Vector *vec, bool (*comp)(void *vec_item, void *provided_item), void *item, size_t beg, size_t end, size_t *index) {
-    if (beg > end) { return CF_INVALID_INPUT; }
-    if (end > vec->len-1) { return CF_OUT_OF_BOUNDS; }
-
-    for (size_t x = beg; x <= end; x++) {
-        if (comp(vec_get_unchecked(vec, x), item)) {
-            //*index = x;
-            return CF_OK;
-        }
-    }
-
-    return CF_NOT_FOUND;
+// Checks if `len`, `cap` and `size` of a vector are equal
+bool vec_is_partial_eq(Vector *vec1, Vector *vec2) {
+    return (
+        vec1->cap == vec2->cap
+        && vec1->len == vec2->len
+        && vec1->size == vec2->size
+    );
 }
 
-Vector vec_copy(Vector *vec) {
+// Checks if `len`, `cap`, `size` and `data` pointer of a vector are equal
+bool vec_is_eq(Vector *vec1, Vector *vec2) {
+    return (
+        vec_is_partial_eq(vec1, vec2)
+        && vec1->data == vec2->data
+    );
+}
+
+bool vec_is_eq_deep(Vector *vec1, Vector *vec2) {
+    if (!vec_is_eq(vec1, vec2)) { return false; }
+
+    return (memcmp(vec1, vec2, vec1->size * vec1->len) == 0);
+}
+
+// Copies the given 
+Vector vec_copy_unchecked(Vector *vec) {
     Vector copy;
+
     vec_init(&copy, vec->size, vec->data, vec->len);
-    // TODO: Check if this is needed
-    vec_reserve_unchecked(&copy, vec->cap);
+    if (vec->data != NULL) {
+        vec_reserve_unchecked(&copy, vec->cap);
+    }
+
     return copy;
+}
+
+VEC_COPY_RESULT vec_copy(Vector *source_vec, Vector *destination_vec) {
+    if (source_vec == NULL) { return VCR_INVALID_SOURCE; }
+    if (destination_vec == NULL) { return VCR_INVALID_DESTINATION; }
+
+    *destination_vec = vec_copy_unchecked(source_vec);
+
+    if (!vec_is_partial_eq(source_vec, destination_vec)) { return VCR_UNKNOWN; }
+    return VCR_OK;
 }
 
 void vec_swap_unchecked(Vector *vec, size_t first_index, size_t second_index) {
@@ -309,7 +372,7 @@ int vec_read_file(Vector *vec, char file_name[], size_t *bytes_written, bool min
             // Set the lenght
             line.len = line.cap;
 
-            switch (vec_binary_search(&line, &vec_rf_comp, line.cap/2, line.cap, &index)) {
+            switch (vec_binary_search(&line, vbsc_rf, line.cap/2, line.cap, &index, NULL)) {
                 case VBSR_OK: { vec_reserve_unchecked(&line, line.cap - 2); goto line_read; }
                 case VBSR_NOT_FOUND: { break; }
                 case VBSR_INVALID_INPUT: { printf("ERROR: Invalid input."); break; }
@@ -333,6 +396,7 @@ void p_vec_info(Vector *vec) {
     printf("Len: %d\n", (int)vec->len);
     printf("Cap: %d\n", (int)vec->cap);
     printf("Size: %d\n", (int)vec->size);
+    printf("Data pointer: %p\n", vec->data);
 }
 
 // TODO: 
