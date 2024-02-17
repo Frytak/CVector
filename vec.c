@@ -18,6 +18,7 @@ size_t _vec_get_p2_cap(size_t amount) {
 ///
 /// WARNING! Remember to free nested pointers with allocated
 /// data or you'll leak memory!
+/// TODO: Error handling
 void vec_drop(Vector *vec) {
     free(vec->data);
     vec->data = NULL;
@@ -273,7 +274,7 @@ COMP_FUNC_RET vec_find_first(Vector *vec, bool (*comp)(void *vec_item, void *sea
 }
 
 // Checks if `len`, `cap` and `size` of a vector are equal
-bool vec_is_partial_eq(Vector *vec1, Vector *vec2) {
+bool vec_is_partial_eq_unchecked(Vector *vec1, Vector *vec2) {
     return (
         vec1->cap == vec2->cap
         && vec1->len == vec2->len
@@ -281,18 +282,39 @@ bool vec_is_partial_eq(Vector *vec1, Vector *vec2) {
     );
 }
 
+bool vec_is_partial_eq(Vector *vec1, Vector *vec2, VEC_EQ_RESULT *result) {
+    if (vec1 == NULL) { if (result != NULL) { *result = VER_INVALID_SOURCE; }; return false; }
+    if (vec2 == NULL) { if (result != NULL) { *result = VER_INVALID_DESTINATION; }; return false; }
+    *result = VER_OK;
+    return vec_is_partial_eq_unchecked(vec1, vec2);
+}
+
 // Checks if `len`, `cap`, `size` and `data` pointer of a vector are equal
-bool vec_is_eq(Vector *vec1, Vector *vec2) {
+bool vec_is_eq_unchecked(Vector *vec1, Vector *vec2) {
     return (
-        vec_is_partial_eq(vec1, vec2)
+        vec_is_partial_eq_unchecked(vec1, vec2)
         && vec1->data == vec2->data
     );
 }
 
-bool vec_is_eq_deep(Vector *vec1, Vector *vec2) {
-    if (!vec_is_eq(vec1, vec2)) { return false; }
+bool vec_is_eq(Vector *vec1, Vector *vec2, VEC_EQ_RESULT *result) {
+    if (vec1 == NULL) { if (result != NULL) { *result = VER_INVALID_SOURCE; }; return false; }
+    if (vec2 == NULL) { if (result != NULL) { *result = VER_INVALID_DESTINATION; }; return false; }
+    return vec_is_partial_eq_unchecked(vec1, vec2);
+}
+
+// Checks if `len`, `cap`, `size` and `data` the vectors are pointing to are equal.
+// The pointers might differ, only the similiarity of the data being held is checked.
+bool vec_is_eq_deep_unchecked(Vector *vec1, Vector *vec2) {
+    if (!vec_is_partial_eq_unchecked(vec1, vec2)) { return false; }
 
     return (memcmp(vec1, vec2, vec1->size * vec1->len) == 0);
+}
+
+bool vec_is_eq_deep(Vector *vec1, Vector *vec2, VEC_EQ_RESULT *result) {
+    if (vec1 == NULL) { if (result != NULL) { *result = VER_INVALID_SOURCE; }; return false; }
+    if (vec2 == NULL) { if (result != NULL) { *result = VER_INVALID_DESTINATION; }; return false; }
+    return vec_is_eq_deep_unchecked(vec1, vec2);
 }
 
 // Copies the given 
@@ -313,7 +335,7 @@ VEC_COPY_RESULT vec_copy(Vector *source_vec, Vector *destination_vec) {
 
     *destination_vec = vec_copy_unchecked(source_vec);
 
-    if (!vec_is_partial_eq(source_vec, destination_vec)) { return VCR_UNKNOWN; }
+    if (!vec_is_partial_eq_unchecked(source_vec, destination_vec)) { return VCR_UNKNOWN; }
     return VCR_OK;
 }
 

@@ -22,7 +22,7 @@ int vec_copy_test() {
     vec = vec_new(0, NULL, 0);
     vec_copied = vec_copy_unchecked(&vec);
 
-    if (vec_is_eq(&vec, &vec_copied))
+    if (vec_is_eq_unchecked(&vec, &vec_copied))
     { passed(); } else { failed(&result); }
     printf("\n");
 
@@ -31,7 +31,7 @@ int vec_copy_test() {
     vec = vec_new(0, NULL, DATA1_LEN);
     vec_copied = vec_copy_unchecked(&vec);
 
-    if (vec_is_eq(&vec, &vec_copied))
+    if (vec_is_eq_unchecked(&vec, &vec_copied))
     { passed(); } else { failed(&result); }
     printf("\n");
 
@@ -40,7 +40,7 @@ int vec_copy_test() {
     vec = vec_new(DATA1_SIZE, NULL, 0);
     vec_copied = vec_copy_unchecked(&vec);
 
-    if (vec_is_eq(&vec, &vec_copied))
+    if (vec_is_eq_unchecked(&vec, &vec_copied))
     { passed(); } else { failed(&result); }
     printf("\n");
 
@@ -49,7 +49,7 @@ int vec_copy_test() {
     vec = vec_new(DATA1_SIZE, NULL, DATA1_LEN);
     vec_copied = vec_copy_unchecked(&vec);
 
-    if (vec_is_eq(&vec, &vec_copied))
+    if (vec_is_eq_unchecked(&vec, &vec_copied))
     { passed(); } else { failed(&result); }
     printf("\n");
 
@@ -58,7 +58,7 @@ int vec_copy_test() {
     vec = vec_new(DATA1_SIZE, (void*)&DATA1, 0);
     vec_copied = vec_copy_unchecked(&vec);
 
-    if (vec_is_eq(&vec, &vec_copied))
+    if (vec_is_eq_unchecked(&vec, &vec_copied))
     { passed(); } else { failed(&result); }
     printf("\n");
 
@@ -67,7 +67,7 @@ int vec_copy_test() {
     vec = vec_new(DATA1_SIZE, (void*)&DATA1, DATA1_LEN);
     vec_copied = vec_copy_unchecked(&vec);
 
-    if (vec_is_partial_eq(&vec, &vec_copied))
+    if (vec_is_partial_eq_unchecked(&vec, &vec_copied))
     { passed(); } else { failed(&result); }
     printf("\n");
 
@@ -77,7 +77,7 @@ int vec_copy_test() {
     vec_reserve_unchecked(&vec, 7);
     vec_copied = vec_copy_unchecked(&vec);
 
-    if (vec_is_partial_eq(&vec, &vec_copied))
+    if (vec_is_partial_eq_unchecked(&vec, &vec_copied))
     { passed(); } else { failed(&result); }
     printf("\n");
 
@@ -88,7 +88,7 @@ int vec_copy_test() {
     VEC_COPY_RESULT error2 = vec_copy(&vec, NULL);
     VEC_COPY_RESULT ok = vec_copy(&vec, &vec_copied);
 
-    if (error1 == VCR_INVALID_SOURCE && error2 == VCR_INVALID_DESTINATION && ok == VCR_OK && vec_is_partial_eq(&vec, &vec_copied))
+    if (error1 == VCR_INVALID_SOURCE && error2 == VCR_INVALID_DESTINATION && ok == VCR_OK && vec_is_partial_eq_unchecked(&vec, &vec_copied))
     { passed(); } else { failed(&result); }
     printf("\n");
 

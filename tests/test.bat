@@ -9,6 +9,7 @@ gcc -o test ^
 .\vec_drop\vec_drop_test.c ^
 .\vec_get\vec_get_test.c ^
 .\vec_new\vec_new_test.c ^
+.\vec_is_partial_eq\vec_is_partial_eq_test.c ^
 .\vec_push\vec_push_test.c ^
 .\vec_push_multi\vec_push_multi_test.c ^
 .\vec_binary_search\vec_binary_search_test.c ^

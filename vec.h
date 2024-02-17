@@ -154,8 +154,12 @@ VEC_BINARY_SEARCH_COMP_RESULT vbsc_int(void *current_num, void *searched_num);
 COMP_FUNC_RET vec_find_first(Vector *vec, bool (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched);
 bool vc_int(void *current_num, void *searched_num);
 
-bool vec_is_partial_eq(Vector *vec1, Vector *vec2);
-bool vec_is_eq(Vector *vec1, Vector *vec2);
+bool vec_is_partial_eq_unchecked(Vector *vec1, Vector *vec2);
+bool vec_is_partial_eq(Vector *vec1, Vector *vec2, VEC_EQ_RESULT *result);
+bool vec_is_eq_unchecked(Vector *vec1, Vector *vec2);
+bool vec_is_eq(Vector *vec1, Vector *vec2, VEC_EQ_RESULT *result);
+bool vec_is_eq_deep_unchecked(Vector *vec1, Vector *vec2);
+bool vec_is_eq_deep(Vector *vec1, Vector *vec2, VEC_EQ_RESULT *result);
 
 Vector vec_copy_unchecked(Vector *vec);
 VEC_COPY_RESULT vec_copy(Vector *source_vec, Vector *destination_vec);
