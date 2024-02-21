@@ -86,7 +86,5 @@ int vec_is_partial_eq_test() {
     { passed(); } else { failed(&result); }
     printf("\n");
 
-    vec_drop(&vec1);
-    vec_drop(&vec2);
     return result;
 }

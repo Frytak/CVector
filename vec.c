@@ -1,9 +1,14 @@
 #include <corecrt.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <vadefs.h>
 #include "vec.h"
+
+/// Denotes the last argument passed to a variadic function
+const Vector VEC_VARIADIC_END = { 285, 3, 456, NULL };
 
 /// Returns a capacity that fits the given amount and is a power of two
 size_t _vec_get_p2_cap(size_t amount) {
@@ -14,16 +19,69 @@ size_t _vec_get_p2_cap(size_t amount) {
     return cap;
 }
 
-/// Drops the pointer to data
-///
-/// WARNING! Remember to free nested pointers with allocated
-/// data or you'll leak memory!
-/// TODO: Error handling
-void vec_drop(Vector *vec) {
+void vec_drop_single_unchecked(Vector *vec) {
     free(vec->data);
     vec->data = NULL;
     vec->cap = 0;
     vec->len = 0;
+    vec->size = 0;
+}
+
+/// Drops the `data` pointer
+///
+/// WARNING! Remember to free nested pointers with allocated
+/// data or you'll leak memory!
+///
+/// While using this function you must ensure that:
+/// - `vec` is not NULL
+/// - `vec->data` is not NULL
+void _vec_drop_unchecked(Vector *vec, ...) {
+    vec_drop_single_unchecked(vec);
+
+    va_list args;
+    va_start(args, vec);
+    
+    while (true) {
+        Vector *arg = va_arg(args, Vector*);
+        if (arg != NULL) {
+            if (vec_is_eq_unchecked(arg, (Vector*)&VEC_VARIADIC_END)) { break; }
+        }
+        vec_drop_single_unchecked(arg);
+    }
+
+    va_end(args);
+}
+
+/// Drops the `data` pointer
+///
+/// WARNING! Remember to free nested pointers with allocated
+/// data or you'll leak memory!
+VEC_DROP_RESULT vec_drop_single(Vector *vec) {
+    if (vec == NULL) { return VDR_INVALID_VEC; }
+    if (vec->data == NULL) { return VDR_INVALID_VEC_DATA; }
+    vec_drop_single_unchecked(vec);
+    return VDR_OK;
+}
+
+VEC_DROP_RESULT _vec_drop(size_t *err_index, Vector *vec, ...) {
+    VEC_DROP_RESULT result = vec_drop_single(vec);
+    if (result != VDR_OK) { if (err_index != NULL) { *err_index = 0; }; return result; }
+
+    va_list args;
+    va_start(args, vec);
+    
+    for (size_t i = 1; true; i++) {
+        Vector *arg = va_arg(args, Vector*);
+        if (arg != NULL) {
+            if (vec_is_eq_unchecked(arg, (Vector*)&VEC_VARIADIC_END)) { break; }
+        }
+
+        result = vec_drop_single(arg);
+        if (result != VDR_OK) { if (err_index != NULL) { *err_index = i; }; return result; }
+    }
+
+    va_end(args);
+    return VDR_OK;
 }
 
 /// Reserves a specific capacity for the vector
@@ -34,7 +92,7 @@ void vec_reserve_unchecked(Vector *vec, size_t cap) {
     vec->cap = cap;
 
     if (cap == 0) {
-        vec_drop(vec);
+        vec_drop_single_unchecked(vec);
         return;
     }
 
@@ -308,12 +366,13 @@ bool vec_is_eq(Vector *vec1, Vector *vec2, VEC_EQ_RESULT *result) {
 bool vec_is_eq_deep_unchecked(Vector *vec1, Vector *vec2) {
     if (!vec_is_partial_eq_unchecked(vec1, vec2)) { return false; }
 
-    return (memcmp(vec1, vec2, vec1->size * vec1->len) == 0);
+    return (memcmp(vec1->data, vec2->data, vec1->size * vec1->len) == 0);
 }
 
 bool vec_is_eq_deep(Vector *vec1, Vector *vec2, VEC_EQ_RESULT *result) {
     if (vec1 == NULL) { if (result != NULL) { *result = VER_INVALID_SOURCE; }; return false; }
     if (vec2 == NULL) { if (result != NULL) { *result = VER_INVALID_DESTINATION; }; return false; }
+    // TODO: Handle NULL `data` pointer
     return vec_is_eq_deep_unchecked(vec1, vec2);
 }
 
@@ -415,6 +474,8 @@ file_read:
 }
 
 void p_vec_info(Vector *vec) {
+    // TODO: Propper error handling
+    if (vec == NULL || vec->data == NULL) { return; }
     printf("Len: %d\n", (int)vec->len);
     printf("Cap: %d\n", (int)vec->cap);
     printf("Size: %d\n", (int)vec->size);

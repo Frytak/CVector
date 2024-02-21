@@ -92,6 +92,5 @@ int vec_copy_test() {
     { passed(); } else { failed(&result); }
     printf("\n");
 
-    vec_drop(&vec);
     return result;
 }

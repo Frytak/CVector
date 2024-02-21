@@ -101,6 +101,5 @@ int vec_binary_search_test() {
 
     // TODO: Error handling test
 
-    vec_drop(&vec);
     return result;
 }

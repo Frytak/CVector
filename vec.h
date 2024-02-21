@@ -113,6 +113,17 @@ typedef enum {
     VER_INVALID_DESTINATION,
 } VEC_EQ_RESULT;
 
+typedef enum {
+    // No errors, vector dropped successfully
+    VDR_OK,
+
+    // Invalid pointer to vector
+    VDR_INVALID_VEC,
+
+    // Invalid pointer to data of a vector, can't be dropped
+    VDR_INVALID_VEC_DATA,
+} VEC_DROP_RESULT;
+
 
 /// A Vector consisting of:
 ///   - len: amount of elements that the vector currently holds
@@ -127,10 +138,16 @@ typedef struct Vector {
     size_t size;
     void *data;
 } Vector;
+extern const Vector VEC_VARIADIC_END;
 
 size_t _vec_get_p2_cap(size_t amount);
 
-void vec_drop(Vector *vec);
+void vec_drop_single_unchecked(Vector *vec);
+void _vec_drop_unchecked(Vector *vec, ...);
+#define vec_drop_unchecked(...) _vec_drop_unchecked(__VA_ARGS__, VEC_VARIADIC_END)
+VEC_DROP_RESULT vec_drop_single(Vector *vec);
+VEC_DROP_RESULT _vec_drop(size_t *err_index, Vector *vec, ...);
+#define vec_drop(err_index, ...) _vec_drop(err_index, __VA_ARGS__, VEC_VARIADIC_END)
 
 void vec_reserve_unchecked(Vector *vec, size_t cap);
 VEC_RESERVE_RESULT vec_reserve(Vector *vec, size_t cap);

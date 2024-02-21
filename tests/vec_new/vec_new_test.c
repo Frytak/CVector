@@ -78,6 +78,5 @@ int vec_new_test() {
     { passed(); } else { failed(&result); }
     printf("\n");
 
-    vec_drop(&vec);
     return result;
 }
