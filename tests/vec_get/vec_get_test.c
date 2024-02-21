@@ -14,24 +14,23 @@
 
 int vec_get_test() {
     int result = 0;
-    Vector vec;
+    Vector vec = vec_new(DATA1_SIZE, (void*)DATA1, DATA1_LEN);
 
     // Test 1: `unchecked` - should contain identical data
-    printf("\tTest 1: ");
-    vec = vec_new(DATA1_SIZE, (void*)DATA1, DATA1_LEN);
+    start_test(1);
 
     bool contains_all = true;
     for (size_t i = 0; i < DATA1_LEN; i++) {
         if (*(int*)vec_get_unchecked(&vec, i) != DATA1[i]) { contains_all = false; };
     }
 
-    if (contains_all)
-    { passed(); } else { failed(&result); }
-    printf("\n");
+    end_test(
+        contains_all,
+        NULL
+    );
 
     // Test 2: `unchecked` - shouldn't contain identical data
-    printf("\tTest 2: ");
-    vec = vec_new(DATA1_SIZE, (void*)&DATA1, DATA1_LEN);
+    start_test(2);
     *(int*)vec.data = 9999;
 
     contains_all = true;
@@ -39,22 +38,27 @@ int vec_get_test() {
         if (*(int*)vec_get_unchecked(&vec, i) != DATA1[i]) { contains_all = false; };
     }
 
-    if (!contains_all)
-    { passed(); } else { failed(&result); }
-    printf("\n");
+    end_test(
+        !contains_all,
+        NULL
+    );
 
     // Test 3: error handling
-    printf("\tTest 3: ");
-    vec = vec_new(DATA1_SIZE, (void*)&DATA1, DATA1_LEN);
+    start_test(3);
     void *error1 = vec_get(NULL, 0);
     void *error2 = vec_get(&vec, DATA1_LEN + 3);
     void *ok = vec_get(&vec, 0);
-    vec.data = NULL;
+    drop_test_vecs(vec_drop_single(&vec));
+    vec.cap = 8;
+    vec.len = 4;
+    vec.size = 4;
+    // TODO: Test for size = 0
     void *error3 = vec_get(&vec, 0);
 
-    if (error1 == NULL && error2 == NULL && ok != NULL && error3 == NULL)
-    { passed(); } else { failed(&result); }
-    printf("\n");
+    end_test(
+        error1 == NULL && error2 == NULL && ok != NULL && error3 == NULL,
+        NULL
+    );
 
     return result;
 }

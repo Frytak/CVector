@@ -17,87 +17,87 @@ int vec_binary_search_test() {
     size_t index = -1;
     size_t searched_index = -1;
     VEC_BINARY_SEARCH_RESULT sresult = -1;
-    Vector vec;
+    Vector vec = vec_new(DATA4_SIZE, (int*)DATA4, DATA4_LEN);
 
     // Test 1: exists in vec
-    printf("\tTest 1: ");
-    vec = vec_new(DATA4_SIZE, (int*)DATA4, DATA4_LEN);
+    start_test(1);
     searched_index = 5;
     sresult = vec_binary_search(&vec, vbsc_int, 0, DATA4_LEN, &index, (void*)&DATA4[searched_index]);
 
-    if (index == searched_index && sresult == VBSR_OK)
-    { passed(); } else { failed(&result); }
-    printf("\n");
+    end_test(
+        index == searched_index && sresult == VBSR_OK,
+        NULL
+    );
 
     // Test 2: doesn't exist in vec
-    printf("\tTest 2: ");
-    vec = vec_new(DATA4_SIZE, (int*)DATA4, DATA4_LEN);
+    start_test(2);
     int value = 120;
     sresult = vec_binary_search(&vec, vbsc_int, 0, DATA4_LEN, &index, &value);
 
-    if (sresult == VBSR_NOT_FOUND)
-    { passed(); } else { failed(&result); }
-    printf("\n");
+    end_test(
+        sresult == VBSR_NOT_FOUND,
+        NULL
+    );
 
     // Test 3: exists on left edge
-    printf("\tTest 3: ");
-    vec = vec_new(DATA4_SIZE, (int*)DATA4, DATA4_LEN);
+    start_test(3);
     searched_index = 0;
     sresult = vec_binary_search(&vec, vbsc_int, 0, DATA4_LEN, &index, (void*)&DATA4[searched_index]);
 
-    if (index == searched_index && sresult == VBSR_OK)
-    { passed(); } else { failed(&result); }
-    printf("\n");
+    end_test(
+        index == searched_index && sresult == VBSR_OK,
+        NULL
+    );
 
     // Test 4: exists on right edge
-    printf("\tTest 4: ");
-    vec = vec_new(DATA4_SIZE, (int*)DATA4, DATA4_LEN);
+    start_test(4);
     searched_index = DATA4_LEN-1;
     sresult = vec_binary_search(&vec, vbsc_int, 0, DATA4_LEN, &index, (void*)&DATA4[searched_index]);
 
-    if (index == searched_index && sresult == VBSR_OK)
-    { passed(); } else { failed(&result); }
-    printf("\n");
+    end_test(
+        index == searched_index && sresult == VBSR_OK,
+        NULL
+    );
 
     // Test 5: exists in boundry
-    printf("\tTest 5: ");
-    vec = vec_new(DATA4_SIZE, (int*)DATA4, DATA4_LEN);
+    start_test(5);
     searched_index = 5;
     sresult = vec_binary_search(&vec, vbsc_int, 2, 6, &index, (void*)&DATA4[searched_index]);
 
-    if (index == searched_index && sresult == VBSR_OK)
-    { passed(); } else { failed(&result); }
-    printf("\n");
+    end_test(
+        index == searched_index && sresult == VBSR_OK,
+        NULL
+    );
 
     // Test 6: doesn't exist in boundry
-    printf("\tTest 6: ");
-    vec = vec_new(DATA4_SIZE, (int*)DATA4, DATA4_LEN);
+    start_test(6);
     searched_index = 8;
     sresult = vec_binary_search(&vec, vbsc_int, 2, 6, &index, (void*)&DATA4[searched_index]);
 
-    if (sresult == VBSR_NOT_FOUND)
-    { passed(); } else { failed(&result); }
-    printf("\n");
+    end_test(
+        sresult == VBSR_NOT_FOUND,
+        NULL
+    );
 
     // Test 7: exists on left edge of boundry
-    printf("\tTest 7: ");
-    vec = vec_new(DATA4_SIZE, (int*)DATA4, DATA4_LEN);
+    start_test(7);
     searched_index = 2;
     sresult = vec_binary_search(&vec, vbsc_int, 2, 6, &index, (void*)&DATA4[searched_index]);
 
-    if (index == searched_index && sresult == VBSR_OK)
-    { passed(); } else { failed(&result); }
-    printf("\n");
+    end_test(
+        index == searched_index && sresult == VBSR_OK,
+        NULL
+    );
 
     // Test 8: exists on right edge of boundry
-    printf("\tTest 8: ");
-    vec = vec_new(DATA4_SIZE, (int*)DATA4, DATA4_LEN);
+    start_test(8);
     searched_index = 5;
     sresult = vec_binary_search(&vec, vbsc_int, 2, 6, &index, (void*)&DATA4[searched_index]);
 
-    if (index == searched_index && sresult == VBSR_OK)
-    { passed(); } else { failed(&result); }
-    printf("\n");
+    end_test(
+        index == searched_index && sresult == VBSR_OK,
+        vec_drop_single(&vec)
+    );
 
     // TODO: Error handling test
 

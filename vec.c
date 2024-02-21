@@ -174,6 +174,7 @@ void *vec_get_unchecked(Vector *vec, size_t index) {
     return vec->data + (vec->size * index);
 }
 
+// TODO: Handle size = 0
 /// Returns a pointer to the element of the specified index or NULL if:
 ///
 /// - `vec` is NULL
@@ -475,10 +476,11 @@ file_read:
 
 void p_vec_info(Vector *vec) {
     // TODO: Propper error handling
-    if (vec == NULL || vec->data == NULL) { return; }
+    if (vec == NULL) { return; }
     printf("Len: %d\n", (int)vec->len);
     printf("Cap: %d\n", (int)vec->cap);
     printf("Size: %d\n", (int)vec->size);
+    if (vec->data == NULL) { return; }
     printf("Data pointer: %p\n", vec->data);
 }
 

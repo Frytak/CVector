@@ -17,47 +17,52 @@ int vec_new_test() {
     Vector vec;
 
     // Test 1: all 0/NULL
-    printf("\tTest 1: ");
+    start_test(1);
     vec = vec_new(0, NULL, 0);
 
-    if (vec.cap == 0 && vec.len == 0 && vec.data == NULL && vec.size == 0)
-    { passed(); } else { failed(&result); }
-    printf("\n");
+    end_test(
+        vec.cap == 0 && vec.len == 0 && vec.data == NULL && vec.size == 0,
+        NULL
+    );
 
     // Test 2: amount only
-    printf("\tTest 2: ");
+    start_test(2);
     vec = vec_new(0, NULL, DATA1_LEN);
 
-    if (vec.cap == 0 && vec.len == 0 && vec.data == NULL && vec.size == 0)
-    { passed(); } else { failed(&result); }
-    printf("\n");
+    end_test(
+        vec.cap == 0 && vec.len == 0 && vec.data == NULL && vec.size == 0,
+        NULL
+    );
 
     // Test 3: size only
-    printf("\tTest 3: ");
+    start_test(3);
     vec = vec_new(DATA1_SIZE, NULL, 0);
 
-    if (vec.cap == 0 && vec.len == 0 && vec.data == NULL && vec.size == DATA1_SIZE)
-    { passed(); } else { failed(&result); }
-    printf("\n");
+    end_test(
+        vec.cap == 0 && vec.len == 0 && vec.data == NULL && vec.size == DATA1_SIZE,
+        NULL
+    );
 
     // Test 4: no data
-    printf("\tTest 4: ");
+    start_test(4);
     vec = vec_new(DATA1_SIZE, NULL, DATA1_LEN);
 
-    if (vec.cap == 0 && vec.len == 0 && vec.data == NULL && vec.size == DATA1_SIZE)
-    { passed(); } else { failed(&result); }
-    printf("\n");
+    end_test(
+        vec.cap == 0 && vec.len == 0 && vec.data == NULL && vec.size == DATA1_SIZE,
+        NULL
+    );
 
     // Test 5: no amount
-    printf("\tTest 5: ");
+    start_test(5);
     vec = vec_new(DATA1_SIZE, (void*)&DATA1, 0);
 
-    if (vec.cap == 0 && vec.len == 0 && vec.data == NULL && vec.size == DATA1_SIZE)
-    { passed(); } else { failed(&result); }
-    printf("\n");
+    end_test(
+        vec.cap == 0 && vec.len == 0 && vec.data == NULL && vec.size == DATA1_SIZE,
+        NULL
+    );
 
     // Test 6: everything provided
-    printf("\tTest 6: ");
+    start_test(6);
     vec = vec_new(DATA1_SIZE, (void*)&DATA1, DATA1_LEN);
 
     bool contains_all = true;
@@ -65,18 +70,20 @@ int vec_new_test() {
         if (*(int*)vec_get_unchecked(&vec, i) != DATA1[i]) { contains_all = false; }
     }
 
-    if (vec.cap == DATA1_CAP && vec.len == DATA1_LEN && vec.data != NULL && vec.size == DATA1_SIZE && contains_all)
-    { passed(); } else { failed(&result); }
-    printf("\n");
+    end_test(
+        vec.cap == DATA1_CAP && vec.len == DATA1_LEN && vec.data != NULL && vec.size == DATA1_SIZE && contains_all,
+        vec_drop_single(&vec)
+    );
 
     // Test 7: error handling
-    printf("\tTest 7: ");
+    start_test(7);
     VEC_INIT_RESULT error1 = vec_init(NULL, DATA1_SIZE, (void*)&DATA1, DATA1_LEN);
     VEC_INIT_RESULT ok = vec_init(&vec, DATA1_SIZE, (void*)&DATA1, DATA1_LEN);
 
-    if (error1 == VIR_INVALID_VEC && ok == VIR_OK)
-    { passed(); } else { failed(&result); }
-    printf("\n");
+    end_test(
+        error1 == VIR_INVALID_VEC && ok == VIR_OK,
+        vec_drop_single(&vec)
+    );
 
     return result;
 }
