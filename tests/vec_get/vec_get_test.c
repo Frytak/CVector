@@ -47,16 +47,21 @@ int vec_get_test() {
     start_test(3);
     void *error1 = vec_get(NULL, 0);
     void *error2 = vec_get(&vec, DATA1_LEN + 3);
-    void *ok = vec_get(&vec, 0);
-    drop_test_vecs(vec_drop_single(&vec));
-    vec.cap = 8;
-    vec.len = 4;
-    vec.size = 4;
-    // TODO: Test for size = 0
+
+    vec.size = 0;
     void *error3 = vec_get(&vec, 0);
 
+    vec.size = DATA1_SIZE;
+    void *ok = vec_get(&vec, 0);
+
+    drop_test_vecs(vec_drop_single(&vec));
+    vec.cap = DATA1_CAP;
+    vec.len = DATA1_LEN;
+    vec.size = DATA1_SIZE;
+    void *error4 = vec_get(&vec, 0);
+
     end_test(
-        error1 == NULL && error2 == NULL && ok != NULL && error3 == NULL,
+        error1 == NULL && error2 == NULL && ok != NULL && error3 == NULL && error4 == NULL,
         NULL
     );
 

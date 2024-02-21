@@ -170,19 +170,23 @@ Vector vec_new(size_t size, void *data, size_t amount) {
 /// - `vec` is not NULL
 /// - `vec->data` is not NULL
 /// - `index` is not out of bounds
+///
+/// It's also a good idea to ensure that:
+/// - `vec->size` is not 0
 void *vec_get_unchecked(Vector *vec, size_t index) {
     return vec->data + (vec->size * index);
 }
 
-// TODO: Handle size = 0
 /// Returns a pointer to the element of the specified index or NULL if:
 ///
 /// - `vec` is NULL
 /// - `vec->data` is NULL
+/// - `vec->size` is 0
 /// - `index` is out of bounds
 void *vec_get(Vector *vec, size_t index) {
     if (vec == NULL) { return NULL; }
     if (vec->data == NULL) { return NULL; }
+    if (vec->size == 0) { return NULL; }
     if (index > vec->len-1) { return NULL; }
     return vec_get_unchecked(vec, index);
 }
