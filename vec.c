@@ -19,6 +19,14 @@ size_t _vec_get_p2_cap(size_t amount) {
     return cap;
 }
 
+/// Drops the `data` pointer
+///
+/// WARNING! Remember to free nested pointers with allocated
+/// data or you'll leak memory!
+///
+/// While using this function you must ensure that:
+/// - `vec` is not NULL
+/// - `vec->data` is not NULL
 void vec_drop_single_unchecked(Vector *vec) {
     free(vec->data);
     vec->data = NULL;
@@ -31,8 +39,19 @@ void vec_drop_single_unchecked(Vector *vec) {
 ///
 /// WARNING! Remember to free nested pointers with allocated
 /// data or you'll leak memory!
+VEC_DROP_RESULT vec_drop_single(Vector *vec) {
+    if (vec == NULL) { return VDR_INVALID_VEC; }
+    if (vec->data == NULL) { return VDR_INVALID_VEC_DATA; }
+    vec_drop_single_unchecked(vec);
+    return VDR_OK;
+}
+
+/// Drops the `data` pointer
 ///
-/// While using this function you must ensure that:
+/// WARNING! Remember to free nested pointers with allocated
+/// data or you'll leak memory!
+///
+/// While using this function you must ensure that each:
 /// - `vec` is not NULL
 /// - `vec->data` is not NULL
 void _vec_drop_unchecked(Vector *vec, ...) {
@@ -56,13 +75,6 @@ void _vec_drop_unchecked(Vector *vec, ...) {
 ///
 /// WARNING! Remember to free nested pointers with allocated
 /// data or you'll leak memory!
-VEC_DROP_RESULT vec_drop_single(Vector *vec) {
-    if (vec == NULL) { return VDR_INVALID_VEC; }
-    if (vec->data == NULL) { return VDR_INVALID_VEC_DATA; }
-    vec_drop_single_unchecked(vec);
-    return VDR_OK;
-}
-
 VEC_DROP_RESULT _vec_drop(size_t *err_index, Vector *vec, ...) {
     VEC_DROP_RESULT result = vec_drop_single(vec);
     if (result != VDR_OK) { if (err_index != NULL) { *err_index = 0; }; return result; }
@@ -86,13 +98,19 @@ VEC_DROP_RESULT _vec_drop(size_t *err_index, Vector *vec, ...) {
 
 /// Reserves a specific capacity for the vector
 ///
+/// WARNING! Remember to free nested pointers with allocated
+/// data or you'll leak memory!
+///
 /// You must ensure that:
 /// - `vec` is not NULL
 void vec_reserve_unchecked(Vector *vec, size_t cap) {
     vec->cap = cap;
 
     if (cap == 0) {
-        vec_drop_single_unchecked(vec);
+        free(vec->data);
+        vec->data = NULL;
+        vec->cap = 0;
+        vec->len = 0;
         return;
     }
 
@@ -104,17 +122,16 @@ void vec_reserve_unchecked(Vector *vec, size_t cap) {
 
     if (vec->len > vec->cap) { vec->len = vec->cap; }
 }
+
 /// Reserves a specific capacity for the vector
+///
+/// WARNING! Remember to free nested pointers with allocated
+/// data or you'll leak memory!
 VEC_RESERVE_RESULT vec_reserve(Vector *vec, size_t cap) {
     if (vec == NULL) { return VRR_INVALID_VEC; }
     vec_reserve_unchecked(vec, cap);
 
     return VRR_OK;
-}
-
-/// Reallocates double of the current capacity
-void _vec_double(Vector *vec) {
-    vec_reserve_unchecked(vec, vec->cap * 2);
 }
 
 /// Initializes the vector with the given data if any
@@ -205,7 +222,7 @@ void vec_push_unchecked(Vector *vec, void *data) {
         if (vec->cap == 0) {
             vec_reserve_unchecked(vec, 1);
         } else {
-            _vec_double(vec);
+            vec_reserve_unchecked(vec, vec->cap * 2);
         }
     }
 

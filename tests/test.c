@@ -7,6 +7,7 @@
 #endif
 
 #include "./vec_drop/vec_drop_test.h"
+#include "./vec_reserve/vec_reserve_test.h"
 #include "./vec_new/vec_new_test.h"
 #include "./vec_is_partial_eq/vec_is_partial_eq_test.h"
 #include "./vec_get/vec_get_test.h"
@@ -31,6 +32,7 @@ int test_func(char name[], int (*func)()) {
 int main() {
     int result = 0;
     result += test_func("vec_drop", vec_drop_test); printf("\n");
+    result += test_func("vec_reserve", vec_reserve_test); printf("\n");
     result += test_func("vec_new", vec_new_test); printf("\n");
     result += test_func("vec_is_partial_eq", vec_is_partial_eq_test); printf("\n");
     result += test_func("vec_get", vec_get_test); printf("\n");

@@ -7,6 +7,7 @@ gcc -o test ^
 .\..\vec.c ^
 .\example_data\example_data.c ^
 .\vec_drop\vec_drop_test.c ^
+.\vec_reserve\vec_reserve_test.c ^
 .\vec_get\vec_get_test.c ^
 .\vec_new\vec_new_test.c ^
 .\vec_is_partial_eq\vec_is_partial_eq_test.c ^
