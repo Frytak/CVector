@@ -124,6 +124,11 @@ typedef enum {
     VDR_INVALID_VEC_DATA,
 } VEC_DROP_RESULT;
 
+typedef enum {
+    PVPT_INT,
+    PVPT_STRING,
+} P_VEC_PRINT_TYPE;
+
 
 /// A Vector consisting of:
 ///   - len: amount of elements that the vector currently holds
@@ -164,6 +169,7 @@ void vec_push_unchecked(Vector *vec, void *data);
 VEC_PUSH_RESULT vec_push(Vector *vec, void *data);
 void vec_push_multi_unchecked(Vector *vec, void *data, size_t amount);
 VEC_PUSH_RESULT vec_push_multi(Vector *vec, void *data, size_t amount);
+// TODO: Make a macro for pushing multiple elements as a variadic function
 
 VEC_BINARY_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched);
 VEC_BINARY_SEARCH_COMP_RESULT vbsc_int(void *current_num, void *searched_num);
@@ -187,6 +193,8 @@ void vec_swap(Vector *vec, size_t first_index, size_t second_index);
 
 errno_t vec_read_file(Vector *vec, char file_name[], size_t *bytes_written, bool minimize);
 
-void p_vec_info(Vector *vec);
+#define CMD_ESC_YELLOW "\033[33m"
+#define CMD_ESC_RESET "\033[0m"
 
-void p_vec_print(Vector *vec, char type);
+void p_vec_info(Vector *vec);
+void p_vec_print(Vector *vec, P_VEC_PRINT_TYPE type);

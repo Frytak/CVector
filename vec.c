@@ -181,6 +181,7 @@ Vector vec_new(size_t size, void *data, size_t amount) {
     return vec;
 }
 
+// TODO: make inline
 /// Returns a pointer to the element of the specified index
 ///
 /// You must ensure that:
@@ -319,6 +320,11 @@ VEC_BINARY_SEARCH_COMP_RESULT vbsc_int(void *current_num, void *searched_num) {
 // Comp function for `ints`
 bool vc_int(void *current_num, void *searched_num) {
     return (*(int*)current_num == *(int*)searched_num);
+}
+
+// Comp function for `chars`
+bool vc_char(void *current_num, void *searched_num) {
+    return (*(char*)current_num == *(char*)searched_num);
 }
 
 /// Comp function of binary search for end of line in an zeroed out (from the right side) buffer
@@ -496,34 +502,37 @@ file_read:
 }
 
 void p_vec_info(Vector *vec) {
-    // TODO: Propper error handling
-    if (vec == NULL) { return; }
-    printf("Len: %d\n", (int)vec->len);
-    printf("Cap: %d\n", (int)vec->cap);
-    printf("Size: %d\n", (int)vec->size);
-    if (vec->data == NULL) { return; }
-    printf("Data pointer: %p\n", vec->data);
-}
+    if (vec == NULL) { printf("%sWARNING: Could not print `vector` because the value passed was NULL.%s", CMD_ESC_YELLOW, CMD_ESC_RESET); return; }
+    printf("{ len: %lld, cap: %lld, size: %lld, data: ", vec->len, vec->cap, vec->len);
 
-// TODO: 
-//typedef enum {
-//    PVPT_INT,
-//    PVPT_CHAR,
-//    ...
-//} P_VEC_PRINT_TYPE;
-
-void p_vec_print(Vector *vec, char type) {
-    // Print opening tag
-    printf("[");
-
-    // Print the elements
-    for (int i = 0; i < vec->len - 1; i++) {
-        char printfTemplate[5] = {'%', type, ',', ' ', '\0'};
-        printf(printfTemplate, *(int*)(vec_get(vec, i)));
+    if (vec->data != NULL) {
+        printf("%p", vec->data);
+    } else {
+        printf("NULL");
     }
 
-    // Print the last element without a `, ` and print a closing tag
-    printf("%d]\n", *(int*)(vec_get(vec, vec->len - 1)));
+    printf(" }");
+}
+
+static inline void p_vec_print_int(void *data) { printf("%d", *(int*)data); }
+static inline void p_vec_print_string(void *data) { printf("\"%s\"", (char*)data); }
+
+// TODO: Change to work on `fprintf`
+void p_vec_print(Vector *vec, P_VEC_PRINT_TYPE type) {
+    void (*print_func)(void*);
+    switch (type) {
+        // TODO: Implement the rest of the types
+        case PVPT_STRING: { print_func = p_vec_print_string; break; }
+        case PVPT_INT: { print_func = p_vec_print_int; break; }
+    }
+
+    printf("[");
+    for (int i = 0; i < vec->len - 1; i++) {
+        print_func(vec_get(vec, i));
+        printf(", ");
+    }
+    print_func(vec_get(vec, vec->len-1));
+    printf("]");
 }
 
 // TODO: `p_vec_print_custom` for custom types
