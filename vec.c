@@ -502,7 +502,7 @@ file_read:
 }
 
 void p_vec_info(Vector *vec) {
-    if (vec == NULL) { printf("%sWARNING: Could not print `vector` because the value passed was NULL.%s", CMD_ESC_YELLOW, CMD_ESC_RESET); return; }
+    if (vec == NULL) { fprintf(stderr, "%sWARNING: Could not print `vector` because the value passed was NULL.%s", CMD_ESC_YELLOW, CMD_ESC_RESET); return; }
     printf("{ len: %lld, cap: %lld, size: %lld, data: ", vec->len, vec->cap, vec->len);
 
     if (vec->data != NULL) {
