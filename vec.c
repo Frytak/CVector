@@ -99,7 +99,7 @@ VEC_DROP_RESULT _vec_drop(size_t *err_index, Vector *vec, ...) {
 /// Reserves a specific capacity for the vector
 ///
 /// WARNING! Remember to free nested pointers with allocated
-/// data or you'll leak memory!
+/// data if you're setting the capacity to `0` or you'll leak memory!
 ///
 /// You must ensure that:
 /// - `vec` is not NULL
@@ -152,24 +152,15 @@ VEC_INIT_RESULT vec_init(Vector *vec, size_t size, void *data, size_t amount) {
 
     // Otherwise, we need to allocate a power of two for the `cap` and set the `len` equal to `amount`
     vec->cap = _vec_get_p2_cap(amount);
-    vec->len = amount;
 
-    // If provided `data` is valid
+    // Allocate the memory
+    vec->data = malloc(vec->cap * vec->size);
+
+    // Copy the data if it's valid
     if (data != NULL) {
-        // Allocate the memory
-        vec->data = malloc(vec->cap * vec->size);
-
-        if (vec->data == NULL) {
-            vec->len = 0;
-            return 1;
-        }
-
-        // Copy the `data` into the `Vector`
+        vec->len = amount;
         memcpy(vec->data, data, vec->size * amount);
-    } else {
-        vec->cap = 0;
-        vec->len = 0;
-    };
+    }
 
     return VIR_OK;
 }
@@ -409,9 +400,7 @@ Vector vec_copy_unchecked(Vector *vec) {
     Vector copy;
 
     vec_init(&copy, vec->size, vec->data, vec->len);
-    if (vec->data != NULL) {
-        vec_reserve_unchecked(&copy, vec->cap);
-    }
+    vec_reserve_unchecked(&copy, vec->cap);
 
     return copy;
 }

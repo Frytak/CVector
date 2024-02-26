@@ -53,8 +53,8 @@ int vec_copy_test() {
     vec_copied = vec_copy_unchecked(&vec);
 
     end_test(
-        vec_is_eq_unchecked(&vec, &vec_copied),
-        NULL
+        vec_is_partial_eq_unchecked(&vec, &vec_copied),
+        vec_drop(NULL, &vec, &vec_copied)
     );
 
     // Test 5: no amount

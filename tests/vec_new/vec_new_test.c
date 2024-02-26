@@ -48,7 +48,7 @@ int vec_new_test() {
     vec = vec_new(DATA1_SIZE, NULL, DATA1_LEN);
 
     end_test(
-        vec.cap == 0 && vec.len == 0 && vec.data == NULL && vec.size == DATA1_SIZE,
+        vec.cap == DATA1_CAP && vec.len == 0 && vec.data != NULL && vec.size == DATA1_SIZE,
         NULL
     );
 
