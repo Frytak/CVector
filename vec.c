@@ -514,25 +514,28 @@ void p_vec_info(Vector *vec) {
     printf(" }");
 }
 
-static inline void p_vec_print_int(void *data) { printf("%d", *(int*)data); }
-static inline void p_vec_print_string(void *data) { printf("\"%s\"", (char*)data); }
+static inline void p_vec_fprint_int(FILE *file, void *data) { fprintf(file, "%d", *(int*)data); }
+static inline void p_vec_fprint_string(FILE *file, void *data) { fprintf(file, "\"%s\"", (char*)data); }
 
-// TODO: Change to work on `fprintf`
-void p_vec_print(Vector *vec, P_VEC_PRINT_TYPE type) {
-    void (*print_func)(void*);
+void p_vec_fprint(FILE *file, Vector *vec, P_VEC_PRINT_TYPE type) {
+    void (*print_func)(FILE*, void*);
     switch (type) {
         // TODO: Implement the rest of the types
-        case PVPT_STRING: { print_func = p_vec_print_string; break; }
-        case PVPT_INT: { print_func = p_vec_print_int; break; }
+        case PVPT_STRING: { print_func = p_vec_fprint_string; break; }
+        case PVPT_INT: { print_func = p_vec_fprint_int; break; }
     }
 
-    printf("[");
+    fprintf(file, "[");
     for (int i = 0; i < vec->len - 1; i++) {
-        print_func(vec_get(vec, i));
-        printf(", ");
+        print_func(file, vec_get(vec, i));
+        fprintf(file, ", ");
     }
-    print_func(vec_get(vec, vec->len-1));
-    printf("]");
+    print_func(file, vec_get(vec, vec->len-1));
+    fprintf(file, "]");
+}
+
+void p_vec_print(Vector *vec, P_VEC_PRINT_TYPE type) {
+    p_vec_fprint(stdout, vec, type);
 }
 
 // TODO: `p_vec_print_custom` for custom types

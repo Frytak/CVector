@@ -1,3 +1,4 @@
+#include <stdio.h>
 #define _FRYTAK_VEC
 
 #include <corecrt.h>
@@ -197,4 +198,5 @@ errno_t vec_read_file(Vector *vec, char file_name[], size_t *bytes_written, bool
 #define CMD_ESC_RESET "\033[0m"
 
 void p_vec_info(Vector *vec);
+void p_vec_fprint(FILE *file, Vector *vec, P_VEC_PRINT_TYPE type);
 void p_vec_print(Vector *vec, P_VEC_PRINT_TYPE type);
