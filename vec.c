@@ -273,8 +273,11 @@ VEC_PUSH_RESULT vec_push_multi(Vector *vec, void *data, size_t amount) {
 /// `index` will be assigned to the searched value index if found
 /// otherwise it's left as is.
 VEC_BINARY_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched) {
+    if (vec == NULL) { return VBSR_INVALID_VEC; }
+    if (comp == NULL) { return VBSR_INVALID_COMP; }
+    if (searched == NULL) { return VBSR_INVALID_SEARCHED; }
     if (vec->len < end || vec->len < beg) { return VBSR_OUT_OF_BOUNDS; }
-    if (beg > end) { return VBSR_INVALID_INPUT; }
+    if (beg >= end) { return VBSR_INVALID_BOUNDS; }
     size_t new_beg = beg;
     size_t new_end = end;
 
@@ -285,7 +288,6 @@ VEC_BINARY_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_R
         if (middle == new_end || middle == new_beg) {
             VEC_BINARY_SEARCH_COMP_RESULT result = comp(current_char, searched);
             if (result == VBSCR_FOUND) { *index = middle; return VBSR_OK; }
-            if (result != VBSCR_LEFT && result != VBSCR_RIGHT) { return VBSR_COMP_INVALID_OUTPUT; }
             return VBSR_NOT_FOUND;
         }
 
@@ -293,7 +295,6 @@ VEC_BINARY_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_R
             case VBSCR_LEFT: { new_end = middle; break; }
             case VBSCR_FOUND: { *index = middle; return VBSR_OK; }
             case VBSCR_RIGHT: { new_beg = middle; break; }
-            default: { return VBSR_COMP_INVALID_OUTPUT; }
         }
     }
 
@@ -470,12 +471,12 @@ int vec_read_file(Vector *vec, char file_name[], size_t *bytes_written, bool min
             // Set the lenght
             line.len = line.cap;
 
+            // TODO: Full error handling
             switch (vec_binary_search(&line, vbsc_rf, line.cap/2, line.cap, &index, NULL)) {
                 case VBSR_OK: { vec_reserve_unchecked(&line, line.cap - 2); goto line_read; }
                 case VBSR_NOT_FOUND: { break; }
-                case VBSR_INVALID_INPUT: { printf("ERROR: Invalid input."); break; }
+                case VBSR_INVALID_BOUNDS: { printf("ERROR: Invalid input."); break; }
                 case VBSR_OUT_OF_BOUNDS: { printf("ERROR: Out of bounds."); break; }
-                case VBSR_COMP_INVALID_OUTPUT: { printf("ERROR: Comp invalid output."); break; }
                 default: { printf("ERROR: In binary search"); break; }
             }
         }

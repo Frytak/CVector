@@ -24,14 +24,20 @@ typedef enum {
     // The value doesn't exist in the specified boundries
     VBSR_NOT_FOUND,
 
+    // Pointer to `vec` is NULL
+    VBSR_INVALID_VEC,
+
+    // Pointer to `comp` is NULL
+    VBSR_INVALID_COMP,
+
+    // Pointer to `searched` is NULL
+    VBSR_INVALID_SEARCHED,
+
     // `beg` or `end` are larger than the vector length
     VBSR_OUT_OF_BOUNDS,
 
     // `beg` is bigger than `end`
-    VBSR_INVALID_INPUT,
-
-    // the `comp` function returns a value that is not -1, 0 or 1
-    VBSR_COMP_INVALID_OUTPUT,
+    VBSR_INVALID_BOUNDS,
 } VEC_BINARY_SEARCH_RESULT;
 
 // TODO: REVIEW
@@ -158,8 +164,6 @@ VEC_DROP_RESULT _vec_drop(size_t *err_index, Vector *vec, ...);
 void vec_reserve_unchecked(Vector *vec, size_t cap);
 VEC_RESERVE_RESULT vec_reserve(Vector *vec, size_t cap);
 
-void _vec_double(Vector *vec);
-
 VEC_INIT_RESULT vec_init(Vector *vec, size_t size, void *data, size_t amount);
 Vector vec_new(size_t size, void *data, size_t amount);
 
@@ -170,7 +174,6 @@ void vec_push_unchecked(Vector *vec, void *data);
 VEC_PUSH_RESULT vec_push(Vector *vec, void *data);
 void vec_push_multi_unchecked(Vector *vec, void *data, size_t amount);
 VEC_PUSH_RESULT vec_push_multi(Vector *vec, void *data, size_t amount);
-// TODO: Make a macro for pushing multiple elements as a variadic function
 
 VEC_BINARY_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched);
 VEC_BINARY_SEARCH_COMP_RESULT vbsc_int(void *current_num, void *searched_num);

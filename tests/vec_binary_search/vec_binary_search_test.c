@@ -96,10 +96,52 @@ int vec_binary_search_test() {
 
     end_test(
         index == searched_index && sresult == VBSR_OK,
-        vec_drop_single(&vec)
+        NULL
     );
 
-    // TODO: Error handling test
+    // Test 9: last element of vec with boundry only at this element
+    start_test(9);
+    searched_index = vec.len-1;
+    sresult = vec_binary_search(&vec, vbsc_int, vec.len-1, vec.len, &index, (void*)&DATA4[searched_index]);
+
+    end_test(
+        index == searched_index && sresult == VBSR_OK,
+        NULL
+    );
+
+    // Test 10: first element of vec with boundry only at this element
+    start_test(10);
+    searched_index = 0;
+    sresult = vec_binary_search(&vec, vbsc_int, 0, 1, &index, (void*)&DATA4[searched_index]);
+
+    end_test(
+        index == searched_index && sresult == VBSR_OK,
+        NULL
+    );
+
+    // Test 11: error handling
+    start_test(11);
+    searched_index = 1;
+    VEC_BINARY_SEARCH_RESULT error1 = vec_binary_search(&vec, vbsc_int, 2, vec.len, &index, (void*)&DATA4[searched_index]);
+    VEC_BINARY_SEARCH_RESULT error2 = vec_binary_search(NULL, vbsc_int, 0, vec.len, &index, (void*)&DATA4[searched_index]);
+    VEC_BINARY_SEARCH_RESULT error3 = vec_binary_search(&vec, NULL, 0, vec.len, &index, (void*)&DATA4[searched_index]);
+    VEC_BINARY_SEARCH_RESULT error4 = vec_binary_search(&vec, vbsc_int, 0, vec.len, &index, NULL);
+    VEC_BINARY_SEARCH_RESULT error5 = vec_binary_search(&vec, vbsc_int, 128, 234, &index, (void*)&DATA4[searched_index]);
+    VEC_BINARY_SEARCH_RESULT error6 = vec_binary_search(&vec, vbsc_int, vec.len, vec.len+1, &index, (void*)&DATA4[searched_index]);
+    VEC_BINARY_SEARCH_RESULT error7 = vec_binary_search(&vec, vbsc_int, vec.len, 2, &index, (void*)&DATA4[searched_index]);
+    VEC_BINARY_SEARCH_RESULT error8 = vec_binary_search(&vec, vbsc_int, vec.len, vec.len, &index, (void*)&DATA4[searched_index]);
+    VEC_BINARY_SEARCH_RESULT ok = vec_binary_search(&vec, vbsc_int, 0, vec.len, &index, (void*)&DATA4[searched_index]);
+
+    end_test(
+        error1 == VBSR_NOT_FOUND
+        && error2 == VBSR_INVALID_VEC
+        && error3 == VBSR_INVALID_COMP
+        && error4 == VBSR_INVALID_SEARCHED
+        && error5 == VBSR_OUT_OF_BOUNDS && error6 == VBSR_OUT_OF_BOUNDS
+        && error7 == VBSR_INVALID_BOUNDS && error8 == VBSR_INVALID_BOUNDS
+        && ok == VBSR_OK && index == searched_index,
+        vec_drop_single(&vec)
+    );
 
     return result;
 }
