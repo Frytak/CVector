@@ -242,9 +242,9 @@ void vec_push_multi_unchecked(Vector *vec, void *data, size_t amount) {
     if (amount == 0) { return; }
     vec->len += amount;
 
-    // Change the capacity if there is not enough space
+    // Double the capacity if there is not enough space
     if (vec->len > vec->cap) {
-        vec_reserve_unchecked(vec, _vec_get_p2_cap(vec->len));
+        vec_reserve_unchecked(vec, vec->cap * 2);
     }
 
     // Copy the data
