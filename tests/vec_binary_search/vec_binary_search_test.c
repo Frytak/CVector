@@ -16,7 +16,7 @@ int vec_binary_search_test() {
     int result = 0;
     size_t index = -1;
     size_t searched_index = -1;
-    VEC_BINARY_SEARCH_RESULT sresult = -1;
+    VEC_SEARCH_RESULT sresult = -1;
     Vector vec = vec_new(DATA4_SIZE, (int*)DATA4, DATA4_LEN);
 
     // Test 1: exists in vec
@@ -25,7 +25,7 @@ int vec_binary_search_test() {
     sresult = vec_binary_search(&vec, vbsc_int, 0, DATA4_LEN, &index, (void*)&DATA4[searched_index]);
 
     end_test(
-        index == searched_index && sresult == VBSR_OK,
+        index == searched_index && sresult == VSR_OK,
         NULL
     );
 
@@ -35,7 +35,7 @@ int vec_binary_search_test() {
     sresult = vec_binary_search(&vec, vbsc_int, 0, DATA4_LEN, &index, &value);
 
     end_test(
-        sresult == VBSR_NOT_FOUND,
+        sresult == VSR_NOT_FOUND,
         NULL
     );
 
@@ -45,7 +45,7 @@ int vec_binary_search_test() {
     sresult = vec_binary_search(&vec, vbsc_int, 0, DATA4_LEN, &index, (void*)&DATA4[searched_index]);
 
     end_test(
-        index == searched_index && sresult == VBSR_OK,
+        index == searched_index && sresult == VSR_OK,
         NULL
     );
 
@@ -55,7 +55,7 @@ int vec_binary_search_test() {
     sresult = vec_binary_search(&vec, vbsc_int, 0, DATA4_LEN, &index, (void*)&DATA4[searched_index]);
 
     end_test(
-        index == searched_index && sresult == VBSR_OK,
+        index == searched_index && sresult == VSR_OK,
         NULL
     );
 
@@ -65,7 +65,7 @@ int vec_binary_search_test() {
     sresult = vec_binary_search(&vec, vbsc_int, 2, 6, &index, (void*)&DATA4[searched_index]);
 
     end_test(
-        index == searched_index && sresult == VBSR_OK,
+        index == searched_index && sresult == VSR_OK,
         NULL
     );
 
@@ -75,7 +75,7 @@ int vec_binary_search_test() {
     sresult = vec_binary_search(&vec, vbsc_int, 2, 6, &index, (void*)&DATA4[searched_index]);
 
     end_test(
-        sresult == VBSR_NOT_FOUND,
+        sresult == VSR_NOT_FOUND,
         NULL
     );
 
@@ -85,7 +85,7 @@ int vec_binary_search_test() {
     sresult = vec_binary_search(&vec, vbsc_int, 2, 6, &index, (void*)&DATA4[searched_index]);
 
     end_test(
-        index == searched_index && sresult == VBSR_OK,
+        index == searched_index && sresult == VSR_OK,
         NULL
     );
 
@@ -95,7 +95,7 @@ int vec_binary_search_test() {
     sresult = vec_binary_search(&vec, vbsc_int, 2, 6, &index, (void*)&DATA4[searched_index]);
 
     end_test(
-        index == searched_index && sresult == VBSR_OK,
+        index == searched_index && sresult == VSR_OK,
         NULL
     );
 
@@ -105,7 +105,7 @@ int vec_binary_search_test() {
     sresult = vec_binary_search(&vec, vbsc_int, vec.len-1, vec.len, &index, (void*)&DATA4[searched_index]);
 
     end_test(
-        index == searched_index && sresult == VBSR_OK,
+        index == searched_index && sresult == VSR_OK,
         NULL
     );
 
@@ -115,31 +115,31 @@ int vec_binary_search_test() {
     sresult = vec_binary_search(&vec, vbsc_int, 0, 1, &index, (void*)&DATA4[searched_index]);
 
     end_test(
-        index == searched_index && sresult == VBSR_OK,
+        index == searched_index && sresult == VSR_OK,
         NULL
     );
 
     // Test 11: error handling
     start_test(11);
     searched_index = 1;
-    VEC_BINARY_SEARCH_RESULT error1 = vec_binary_search(&vec, vbsc_int, 2, vec.len, &index, (void*)&DATA4[searched_index]);
-    VEC_BINARY_SEARCH_RESULT error2 = vec_binary_search(NULL, vbsc_int, 0, vec.len, &index, (void*)&DATA4[searched_index]);
-    VEC_BINARY_SEARCH_RESULT error3 = vec_binary_search(&vec, NULL, 0, vec.len, &index, (void*)&DATA4[searched_index]);
-    VEC_BINARY_SEARCH_RESULT error4 = vec_binary_search(&vec, vbsc_int, 0, vec.len, &index, NULL);
-    VEC_BINARY_SEARCH_RESULT error5 = vec_binary_search(&vec, vbsc_int, 128, 234, &index, (void*)&DATA4[searched_index]);
-    VEC_BINARY_SEARCH_RESULT error6 = vec_binary_search(&vec, vbsc_int, vec.len, vec.len+1, &index, (void*)&DATA4[searched_index]);
-    VEC_BINARY_SEARCH_RESULT error7 = vec_binary_search(&vec, vbsc_int, vec.len, 2, &index, (void*)&DATA4[searched_index]);
-    VEC_BINARY_SEARCH_RESULT error8 = vec_binary_search(&vec, vbsc_int, vec.len, vec.len, &index, (void*)&DATA4[searched_index]);
-    VEC_BINARY_SEARCH_RESULT ok = vec_binary_search(&vec, vbsc_int, 0, vec.len, &index, (void*)&DATA4[searched_index]);
+    VEC_SEARCH_RESULT error1 = vec_binary_search(&vec, vbsc_int, 2, vec.len, &index, (void*)&DATA4[searched_index]);
+    VEC_SEARCH_RESULT error2 = vec_binary_search(NULL, vbsc_int, 0, vec.len, &index, (void*)&DATA4[searched_index]);
+    VEC_SEARCH_RESULT error3 = vec_binary_search(&vec, NULL, 0, vec.len, &index, (void*)&DATA4[searched_index]);
+    VEC_SEARCH_RESULT error4 = vec_binary_search(&vec, vbsc_int, 0, vec.len, &index, NULL);
+    VEC_SEARCH_RESULT error5 = vec_binary_search(&vec, vbsc_int, 128, 234, &index, (void*)&DATA4[searched_index]);
+    VEC_SEARCH_RESULT error6 = vec_binary_search(&vec, vbsc_int, vec.len, vec.len+1, &index, (void*)&DATA4[searched_index]);
+    VEC_SEARCH_RESULT error7 = vec_binary_search(&vec, vbsc_int, vec.len, 2, &index, (void*)&DATA4[searched_index]);
+    VEC_SEARCH_RESULT error8 = vec_binary_search(&vec, vbsc_int, vec.len, vec.len, &index, (void*)&DATA4[searched_index]);
+    VEC_SEARCH_RESULT ok = vec_binary_search(&vec, vbsc_int, 0, vec.len, &index, (void*)&DATA4[searched_index]);
 
     end_test(
-        error1 == VBSR_NOT_FOUND
-        && error2 == VBSR_INVALID_VEC
-        && error3 == VBSR_INVALID_COMP
-        && error4 == VBSR_INVALID_SEARCHED
-        && error5 == VBSR_OUT_OF_BOUNDS && error6 == VBSR_OUT_OF_BOUNDS
-        && error7 == VBSR_INVALID_BOUNDS && error8 == VBSR_INVALID_BOUNDS
-        && ok == VBSR_OK && index == searched_index,
+        error1 == VSR_NOT_FOUND
+        && error2 == VSR_INVALID_VEC
+        && error3 == VSR_INVALID_COMP
+        && error4 == VSR_INVALID_SEARCHED
+        && error5 == VSR_OUT_OF_BOUNDS && error6 == VSR_OUT_OF_BOUNDS
+        && error7 == VSR_INVALID_BOUNDS && error8 == VSR_INVALID_BOUNDS
+        && ok == VSR_OK && index == searched_index,
         vec_drop_single(&vec)
     );
 

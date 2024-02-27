@@ -272,12 +272,12 @@ VEC_PUSH_RESULT vec_push_multi(Vector *vec, void *data, size_t amount) {
 ///
 /// `index` will be assigned to the searched value index if found
 /// otherwise it's left as is.
-VEC_BINARY_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched) {
-    if (vec == NULL) { return VBSR_INVALID_VEC; }
-    if (comp == NULL) { return VBSR_INVALID_COMP; }
-    if (searched == NULL) { return VBSR_INVALID_SEARCHED; }
-    if (vec->len < end || vec->len < beg) { return VBSR_OUT_OF_BOUNDS; }
-    if (beg >= end) { return VBSR_INVALID_BOUNDS; }
+VEC_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched) {
+    if (vec == NULL) { return VSR_INVALID_VEC; }
+    if (comp == NULL) { return VSR_INVALID_COMP; }
+    if (searched == NULL) { return VSR_INVALID_SEARCHED; }
+    if (vec->len < end || vec->len < beg) { return VSR_OUT_OF_BOUNDS; }
+    if (beg >= end) { return VSR_INVALID_BOUNDS; }
     size_t new_beg = beg;
     size_t new_end = end;
 
@@ -287,18 +287,18 @@ VEC_BINARY_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_R
 
         if (middle == new_end || middle == new_beg) {
             VEC_BINARY_SEARCH_COMP_RESULT result = comp(current_char, searched);
-            if (result == VBSCR_FOUND) { *index = middle; return VBSR_OK; }
-            return VBSR_NOT_FOUND;
+            if (result == VBSCR_FOUND) { *index = middle; return VSR_OK; }
+            return VSR_NOT_FOUND;
         }
 
         switch (comp(current_char, searched)) {
             case VBSCR_LEFT: { new_end = middle; break; }
-            case VBSCR_FOUND: { *index = middle; return VBSR_OK; }
+            case VBSCR_FOUND: { *index = middle; return VSR_OK; }
             case VBSCR_RIGHT: { new_beg = middle; break; }
         }
     }
 
-    return VBSR_NOT_FOUND;
+    return VSR_NOT_FOUND;
 }
 
 /// Comp function of binary search for `ints`
@@ -307,6 +307,15 @@ VEC_BINARY_SEARCH_COMP_RESULT vbsc_int(void *current_num, void *searched_num) {
     if (*(int*)current_num < *(int*)searched_num) { return VBSCR_RIGHT; }
     if (*(int*)current_num == *(int*)searched_num) { return VBSCR_FOUND; }
     return -1;
+}
+
+/// Comp function of binary search for end of line in an zeroed out (from the right side) buffer
+VEC_BINARY_SEARCH_COMP_RESULT vbsc_rf(void *current_char, void *_) {
+    switch (*(char*)current_char) {
+        case '\n': { return VBSCR_FOUND; }
+        case 0: { return VBSCR_LEFT; }
+        default: { return VBSCR_RIGHT; }
+    }
 }
 
 // Comp function for `ints`
@@ -319,15 +328,6 @@ bool vc_char(void *current_num, void *searched_num) {
     return (*(char*)current_num == *(char*)searched_num);
 }
 
-/// Comp function of binary search for end of line in an zeroed out (from the right side) buffer
-VEC_BINARY_SEARCH_COMP_RESULT vbsc_rf(void *current_char, void *_) {
-    switch (*(char*)current_char) {
-        case '\n': { return VBSCR_FOUND; }
-        case 0: { return VBSCR_LEFT; }
-        default: { return VBSCR_RIGHT; }
-    }
-}
-
 /// Performs a linear search on the given vector, returning the
 /// first element it finds.
 ///
@@ -337,18 +337,21 @@ VEC_BINARY_SEARCH_COMP_RESULT vbsc_rf(void *current_char, void *_) {
 ///
 /// `beg` and `end` are boundries of indexes of where the search
 /// will be performed, `<beg,end)`.
-COMP_FUNC_RET vec_find_first(Vector *vec, bool (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched) {
-    if (beg > end) { return CF_INVALID_INPUT; }
-    if (end > vec->len) { return CF_OUT_OF_BOUNDS; }
+VEC_SEARCH_RESULT vec_find_first(Vector *vec, bool (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched) {
+    if (vec == NULL) { return VSR_INVALID_VEC; }
+    if (comp == NULL) { return VSR_INVALID_COMP; }
+    if (searched == NULL) { return VSR_INVALID_SEARCHED; }
+    if (vec->len < end || vec->len < beg) { return VSR_OUT_OF_BOUNDS; }
+    if (beg >= end) { return VSR_INVALID_BOUNDS; }
 
     for (size_t x = beg; x < end; x++) {
         if (comp(vec_get_unchecked(vec, x), searched)) {
             if (index != NULL) { *index = x; }
-            return CF_OK;
+            return VSR_OK;
         }
     }
 
-    return CF_NOT_FOUND;
+    return VSR_NOT_FOUND;
 }
 
 // Checks if `len`, `cap` and `size` of a vector are equal
@@ -473,10 +476,10 @@ int vec_read_file(Vector *vec, char file_name[], size_t *bytes_written, bool min
 
             // TODO: Full error handling
             switch (vec_binary_search(&line, vbsc_rf, line.cap/2, line.cap, &index, NULL)) {
-                case VBSR_OK: { vec_reserve_unchecked(&line, line.cap - 2); goto line_read; }
-                case VBSR_NOT_FOUND: { break; }
-                case VBSR_INVALID_BOUNDS: { printf("ERROR: Invalid input."); break; }
-                case VBSR_OUT_OF_BOUNDS: { printf("ERROR: Out of bounds."); break; }
+                case VSR_OK: { vec_reserve_unchecked(&line, line.cap - 2); goto line_read; }
+                case VSR_NOT_FOUND: { break; }
+                case VSR_INVALID_BOUNDS: { printf("ERROR: Invalid input."); break; }
+                case VSR_OUT_OF_BOUNDS: { printf("ERROR: Out of bounds."); break; }
                 default: { printf("ERROR: In binary search"); break; }
             }
         }

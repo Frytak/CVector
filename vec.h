@@ -19,44 +19,26 @@ typedef enum {
 // Vector binary search return values
 typedef enum {
     // No errors, value was found
-    VBSR_OK,
+    VSR_OK,
 
     // The value doesn't exist in the specified boundries
-    VBSR_NOT_FOUND,
+    VSR_NOT_FOUND,
 
     // Pointer to `vec` is NULL
-    VBSR_INVALID_VEC,
+    VSR_INVALID_VEC,
 
     // Pointer to `comp` is NULL
-    VBSR_INVALID_COMP,
+    VSR_INVALID_COMP,
 
     // Pointer to `searched` is NULL
-    VBSR_INVALID_SEARCHED,
+    VSR_INVALID_SEARCHED,
 
     // `beg` or `end` are larger than the vector length
-    VBSR_OUT_OF_BOUNDS,
+    VSR_OUT_OF_BOUNDS,
 
     // `beg` is bigger than `end`
-    VBSR_INVALID_BOUNDS,
-} VEC_BINARY_SEARCH_RESULT;
-
-// TODO: REVIEW
-typedef enum {
-    // No errors, value was found
-    CF_OK,
-
-    // The value doesn't exist in the specified boundries
-    CF_NOT_FOUND,
-
-    // `beg` or `end` are larger than the vector length
-    CF_OUT_OF_BOUNDS,
-
-    // `beg` is bigger than `end`
-    CF_INVALID_INPUT,
-
-    // the `comp` function should return a value that is boolean (1, 0)
-    CF_COMP_INVALID_OUTPUT,
-} COMP_FUNC_RET;
+    VSR_INVALID_BOUNDS,
+} VEC_SEARCH_RESULT;
 
 // `vec_init` result
 typedef enum {
@@ -175,10 +157,10 @@ VEC_PUSH_RESULT vec_push(Vector *vec, void *data);
 void vec_push_multi_unchecked(Vector *vec, void *data, size_t amount);
 VEC_PUSH_RESULT vec_push_multi(Vector *vec, void *data, size_t amount);
 
-VEC_BINARY_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched);
+VEC_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched);
 VEC_BINARY_SEARCH_COMP_RESULT vbsc_int(void *current_num, void *searched_num);
 
-COMP_FUNC_RET vec_find_first(Vector *vec, bool (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched);
+VEC_SEARCH_RESULT vec_find_first(Vector *vec, bool (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched);
 bool vc_int(void *current_num, void *searched_num);
 
 bool vec_is_partial_eq_unchecked(Vector *vec1, Vector *vec2);

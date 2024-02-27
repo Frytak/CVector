@@ -16,7 +16,7 @@ int vec_find_first_test() {
     int result = 0;
     size_t index = -1;
     size_t searched_index = -1;
-    COMP_FUNC_RET sresult = -1;
+    VEC_SEARCH_RESULT sresult = -1;
     Vector vec = vec_new(DATA2_SIZE, (void*)DATA2, DATA2_LEN);
 
     // Test 1: exists in vec
@@ -25,7 +25,7 @@ int vec_find_first_test() {
     sresult = vec_find_first(&vec, vc_int, 0, DATA2_LEN, &index, (void*)&DATA2[searched_index]);
 
     end_test(
-        index == searched_index && sresult == CF_OK,
+        index == searched_index && sresult == VSR_OK,
         NULL
     );
 
@@ -35,7 +35,7 @@ int vec_find_first_test() {
     sresult = vec_find_first(&vec, vc_int, 0, DATA2_LEN, &index, (void*)&value);
 
     end_test(
-        sresult == CF_NOT_FOUND,
+        sresult == VSR_NOT_FOUND,
         NULL
     );
 
@@ -45,7 +45,7 @@ int vec_find_first_test() {
     sresult = vec_find_first(&vec, vc_int, 0, DATA2_LEN, &index, (void*)&DATA2[searched_index]);
 
     end_test(
-        index == searched_index && sresult == CF_OK,
+        index == searched_index && sresult == VSR_OK,
         NULL
     );
 
@@ -55,7 +55,7 @@ int vec_find_first_test() {
     sresult = vec_find_first(&vec, vc_int, 0, DATA2_LEN, &index, (void*)&DATA2[searched_index]);
 
     end_test(
-        index == searched_index && sresult == CF_OK,
+        index == searched_index && sresult == VSR_OK,
         NULL
     );
 
@@ -65,7 +65,7 @@ int vec_find_first_test() {
     sresult = vec_find_first(&vec, vc_int, 2, DATA2_LEN-2, &index, (void*)&DATA2[searched_index]);
 
     end_test(
-        index == searched_index && sresult == CF_OK,
+        index == searched_index && sresult == VSR_OK,
         NULL
     );
 
@@ -75,7 +75,7 @@ int vec_find_first_test() {
     sresult = vec_find_first(&vec, vc_int, 2, 6, &index, (void*)&DATA2[searched_index]);
 
     end_test(
-        sresult == CF_NOT_FOUND,
+        sresult == VSR_NOT_FOUND,
         NULL
     );
 
@@ -85,7 +85,7 @@ int vec_find_first_test() {
     sresult = vec_find_first(&vec, vc_int, 2, 6, &index, (void*)&DATA2[searched_index]);
 
     end_test(
-        index == searched_index && sresult == CF_OK,
+        index == searched_index && sresult == VSR_OK,
         NULL
     );
 
@@ -95,7 +95,7 @@ int vec_find_first_test() {
     sresult = vec_find_first(&vec, vc_int, 2, 6, &index, (void*)&DATA2[searched_index]);
 
     end_test(
-        index == searched_index && sresult == CF_OK,
+        index == searched_index && sresult == VSR_OK,
         vec_drop_single(&vec)
     );
 
