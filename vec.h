@@ -33,7 +33,7 @@ typedef enum {
     // Pointer to `searched` is NULL
     VSR_INVALID_SEARCHED,
 
-    // `beg` or `end` are larger than the vector length
+    // `beg` or/and `end` are larger than the vectors' length
     VSR_OUT_OF_BOUNDS,
 
     // `beg` is bigger than `end`
@@ -63,6 +63,37 @@ typedef enum {
     // Pointer to `data` is NULL
     VPR_INVALID_DATA,
 } VEC_PUSH_RESULT;
+
+typedef enum {
+    // No errors, value removed and data shifted
+    VRER_OK,
+
+    // Pointer to `vec` is NULL
+    VRER_INVALID_VEC,
+
+    // Pointer to `vec->data` is NULL
+    VRER_INVALID_VEC_DATA,
+
+    // Provided index is bigger than the vectors' length
+    VRER_OUT_OF_BOUNDS,
+} VEC_REMOVE_RESULT;
+
+typedef enum {
+    // No errors, value removed and data shifted
+    VRERR_OK,
+
+    // Pointer to `vec` is NULL
+    VRERR_INVALID_VEC,
+
+    // Pointer to `vec->data` is NULL
+    VRERR_INVALID_VEC_DATA,
+
+    // `beg` is bigger than `end`
+    VRERR_INVALID_BOUNDS,
+
+    // Provided `beg` or/and `end` are bigger than the vectors' length
+    VRERR_OUT_OF_BOUNDS,
+} VEC_REMOVE_RANGE_RESULT;
 
 // `vec_reserve` result
 typedef enum {
@@ -156,6 +187,11 @@ void vec_push_unchecked(Vector *vec, void *data);
 VEC_PUSH_RESULT vec_push(Vector *vec, void *data);
 void vec_push_multi_unchecked(Vector *vec, void *data, size_t amount);
 VEC_PUSH_RESULT vec_push_multi(Vector *vec, void *data, size_t amount);
+
+void vec_remove_unchecked(Vector *vec, size_t index);
+VEC_REMOVE_RESULT vec_remove(Vector *vec, size_t index);
+void vec_remove_range_unchecked(Vector *vec, size_t beg, size_t end);
+VEC_REMOVE_RANGE_RESULT vec_remove_range(Vector *vec, size_t beg, size_t end);
 
 VEC_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched);
 VEC_BINARY_SEARCH_COMP_RESULT vbsc_int(void *current_num, void *searched_num);

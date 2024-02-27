@@ -261,6 +261,41 @@ VEC_PUSH_RESULT vec_push_multi(Vector *vec, void *data, size_t amount) {
     return 0;
 }
 
+void vec_remove_unchecked(Vector *vec, size_t index) {
+    vec->len--;
+    if (index == vec->len) { return; }
+
+    memcpy(vec_get_unchecked(vec, index), vec_get_unchecked(vec, index+1), vec->size * (vec->len+1 - index+1));
+}
+
+VEC_REMOVE_RESULT vec_remove(Vector *vec, size_t index) {
+    if (vec == NULL) { return VRER_INVALID_VEC; }
+    if (vec->data == NULL) { return VRER_INVALID_VEC_DATA; }
+    if (index >= vec->len) { return VRER_OUT_OF_BOUNDS; }
+
+    vec->len--;
+    if (index == vec->len) { return VRER_OK; }
+
+    memcpy(vec_get_unchecked(vec, index), vec_get_unchecked(vec, index+1), vec->size * (vec->len+1 - index+1));
+    return VRER_OK;
+}
+
+void vec_remove_range_unchecked(Vector *vec, size_t beg, size_t end) {
+    vec->len -= end - beg;
+    if (end == vec->len) { return; }
+    memcpy(vec_get_unchecked(vec, beg), vec_get_unchecked(vec, end), vec->size * vec->len);
+}
+
+VEC_REMOVE_RANGE_RESULT vec_remove_range(Vector *vec, size_t beg, size_t end) {
+    if (vec == NULL) { return VRERR_INVALID_VEC; }
+    if (vec->data == NULL) { return VRERR_INVALID_VEC_DATA; }
+    if (end < beg) { return VRERR_INVALID_BOUNDS; }
+    if (end > vec->len || beg >= vec->len) { return VRERR_OUT_OF_BOUNDS; }
+
+    vec_remove_range_unchecked(vec, beg, end);
+    return VRERR_OK;
+}
+
 /// Performs a binary search on the given vector
 ///
 /// The `comp` function will get passed the currently checked
@@ -496,7 +531,7 @@ file_read:
 
 void p_vec_info(Vector *vec) {
     if (vec == NULL) { fprintf(stderr, "%sWARNING: Could not print `vector` because the value passed was NULL.%s", CMD_ESC_YELLOW, CMD_ESC_RESET); return; }
-    printf("{ len: %lld, cap: %lld, size: %lld, data: ", vec->len, vec->cap, vec->len);
+    printf("{ len: %lld, cap: %lld, size: %lld, data: ", vec->len, vec->cap, vec->size);
 
     if (vec->data != NULL) {
         printf("%p", vec->data);

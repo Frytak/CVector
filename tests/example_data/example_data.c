@@ -7,7 +7,7 @@ const int DATA1_LEN = 7;
 const int DATA1_CAP = 8;
 const int DATA1_SIZE = sizeof(int);
 
-const int DATA2[] = {5, 3, 98, 12, 52, 0, -12, 0, 129}; 
+const int DATA2[] = {5, 3, 98, 12, 52, 1, -12, 0, 129}; 
 const int DATA2_LEN = 9;
 const int DATA2_CAP = 16;
 const int DATA2_SIZE = sizeof(int);
