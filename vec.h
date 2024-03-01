@@ -156,7 +156,7 @@ typedef enum {
 ///   - size: size in bytes of one element contained in the Vector
 ///   - data: pointer to the data on the heap
 ///
-/// Default `len` of `Vector` is 1 and it grows each time by a factor of 2.
+/// This implementation grows the capacity if it's not enough by a factor of 2.
 typedef struct Vector {
     size_t len;
     size_t cap;
@@ -192,6 +192,7 @@ void vec_remove_unchecked(Vector *vec, size_t index);
 VEC_REMOVE_RESULT vec_remove(Vector *vec, size_t index);
 void vec_remove_range_unchecked(Vector *vec, size_t beg, size_t end);
 VEC_REMOVE_RANGE_RESULT vec_remove_range(Vector *vec, size_t beg, size_t end);
+void vec_remove_normalized_ranges_unchecked(Vector *vec, size_t *ranges, size_t amount);
 
 VEC_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched);
 VEC_BINARY_SEARCH_COMP_RESULT vbsc_int(void *current_num, void *searched_num);
