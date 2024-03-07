@@ -19,6 +19,16 @@ size_t _vec_get_p2_cap(size_t amount) {
     return cap;
 }
 
+/// Returns a capacity that fits the given amount by doubling it continously
+size_t _vec_get_cap(size_t cap, size_t amount) {
+    if (amount == 0) { return 0; }
+
+    size_t new_cap = cap;
+    if (cap == 0) { new_cap = 1; }
+    for (; new_cap < amount; new_cap *= 2) {}
+    return new_cap;
+}
+
 /// Drops the `data` pointer
 ///
 /// WARNING! Remember to free nested pointers with allocated
@@ -166,6 +176,7 @@ VEC_INIT_RESULT vec_init(Vector *vec, size_t size, void *data, size_t amount) {
 }
 
 /// Create a new `Vector` with the given data
+/// The amount will be alligned to set the capacity as a power of 2
 Vector vec_new(size_t size, void *data, size_t amount) {
     Vector vec;
     vec_init(&vec, size, data, amount);
@@ -242,9 +253,9 @@ void vec_push_multi_unchecked(Vector *vec, void *data, size_t amount) {
     if (amount == 0) { return; }
     vec->len += amount;
 
-    // Double the capacity if there is not enough space
+    // Double the capacity until it fits
     if (vec->len > vec->cap) {
-        vec_reserve_unchecked(vec, vec->cap * 2);
+        vec_reserve_unchecked(vec, _vec_get_cap(vec->cap, vec->len));
     }
 
     // Copy the data
@@ -293,6 +304,33 @@ VEC_REMOVE_RANGE_RESULT vec_remove_range(Vector *vec, size_t beg, size_t end) {
     if (end > vec->len || beg >= vec->len) { return VRERR_OUT_OF_BOUNDS; }
 
     vec_remove_range_unchecked(vec, beg, end);
+    return VRERR_OK;
+}
+
+void vec_remove_normalized_ranges_unchecked(Vector *vec, size_t *ranges, size_t amount) {
+    size_t initial_len = vec->len;
+    size_t current_data_end = ranges[0];
+
+    for (size_t i = 2; i < amount*2; i+=2) {
+        size_t beg = ranges[i-2];
+        size_t end = ranges[i-1];
+        size_t next_beg = ranges[i];
+        vec->len -= end - beg;
+        //printf("MHM: %lld o: %lld", end-beg, current_data_end);
+        memcpy(vec_get_unchecked(vec, current_data_end), vec_get_unchecked(vec, end), vec->size * (next_beg - end));
+        current_data_end += next_beg - end;
+    }
+
+    size_t beg = ranges[amount*2-2];
+    size_t end = ranges[amount*2-1];
+    vec->len -= end - beg;
+    //printf("```%lld %lld```", end, initial_len);
+    if (end == initial_len) { return; }
+    //printf("MHM: %lld from: %lld %lld %lld", end-beg, end, beg, current_data_end);
+    memcpy(vec_get_unchecked(vec, current_data_end), vec_get_unchecked(vec, end), vec->size * (initial_len - end));
+}
+
+VEC_REMOVE_RANGE_RESULT vec_remove_ranges(Vector *vec, size_t *ranges[], size_t amount) {
     return VRERR_OK;
 }
 

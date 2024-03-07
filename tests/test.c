@@ -15,6 +15,7 @@
 #include "./vec_push_multi/vec_push_multi_test.h"
 #include "./vec_remove/vec_remove_test.h"
 #include "./vec_remove_range/vec_remove_range_test.h"
+#include "./vec_remove_normalized_ranges/vec_remove_normalized_ranges_test.h"
 #include "./vec_binary_search/vec_binary_search_test.h"
 #include "./vec_find_first/vec_find_first_test.h"
 #include "./vec_copy/vec_copy_test.h"
@@ -45,6 +46,7 @@ int main() {
     result += test_func("vec_copy", vec_copy_test); printf("\n");
     result += test_func("vec_remove", vec_remove_test); printf("\n");
     result += test_func("vec_remove_range", vec_remove_range_test); printf("\n");
+    result += test_func("vec_remove_normalized_ranges", vec_remove_normalized_ranges_test); printf("\n");
     printf("\nThe overall result of the tests: ");
     if (result == 0) { passed(); } else { failed(&result); }
     return result;
