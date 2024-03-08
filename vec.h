@@ -95,6 +95,23 @@ typedef enum {
     VRERR_OUT_OF_BOUNDS,
 } VEC_REMOVE_RANGE_RESULT;
 
+typedef enum {
+    // No errors, values removed and data shifted
+    VRENRR_OK,
+
+    // Pointer to `vec` is NULL
+    VRENRR_INVALID_VEC,
+
+    // Pointer to `vec->data` is NULL
+    VRENRR_INVALID_VEC_DATA,
+
+    // Pointer to `ranges` is NULL
+    VRENRR_INVALID_RANGES,
+
+    // Given ranges are not normalized
+    VRENRR_NON_NORMALIZED_RANGES,
+} VEC_REMOVE_NORMALIZED_RANGES_RESULT;
+
 // `vec_reserve` result
 typedef enum {
     // No errors, capacity reserved
@@ -193,6 +210,7 @@ VEC_REMOVE_RESULT vec_remove(Vector *vec, size_t index);
 void vec_remove_range_unchecked(Vector *vec, size_t beg, size_t end);
 VEC_REMOVE_RANGE_RESULT vec_remove_range(Vector *vec, size_t beg, size_t end);
 void vec_remove_normalized_ranges_unchecked(Vector *vec, size_t *ranges, size_t amount);
+VEC_REMOVE_NORMALIZED_RANGES_RESULT vec_remove_normalized_ranges(Vector *vec, size_t *ranges, size_t amount);
 
 VEC_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched);
 VEC_BINARY_SEARCH_COMP_RESULT vbsc_int(void *current_num, void *searched_num);

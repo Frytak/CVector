@@ -308,6 +308,7 @@ VEC_REMOVE_RANGE_RESULT vec_remove_range(Vector *vec, size_t beg, size_t end) {
 }
 
 void vec_remove_normalized_ranges_unchecked(Vector *vec, size_t *ranges, size_t amount) {
+    if (amount == 0) { return; }
     size_t initial_len = vec->len;
     size_t current_data_end = ranges[0];
 
@@ -330,9 +331,29 @@ void vec_remove_normalized_ranges_unchecked(Vector *vec, size_t *ranges, size_t 
     memcpy(vec_get_unchecked(vec, current_data_end), vec_get_unchecked(vec, end), vec->size * (initial_len - end));
 }
 
-VEC_REMOVE_RANGE_RESULT vec_remove_ranges(Vector *vec, size_t *ranges[], size_t amount) {
-    return VRERR_OK;
+VEC_REMOVE_NORMALIZED_RANGES_RESULT vec_remove_normalized_ranges(Vector *vec, size_t *ranges, size_t amount) {
+    if (vec == NULL) { return VRENRR_INVALID_VEC; }
+    if (vec->data == NULL) { return VRENRR_INVALID_VEC_DATA; }
+    if (ranges == NULL) { return VRENRR_INVALID_RANGES; }
+
+    // Check if the ranges are normalized
+    size_t highest_seen = ranges[0];
+    for (size_t i = 1; i < amount*2; i++) {
+        if (ranges[i] <= highest_seen) { return VRENRR_NON_NORMALIZED_RANGES; }
+        highest_seen = ranges[i];
+    }
+
+    vec_remove_normalized_ranges_unchecked(vec, ranges, amount);
+    return VRENRR_OK;
 }
+
+// TODO: Automatic normalization. For now I won't implement it as there are other functions that will be usefull while implementing this one.
+//Vector _vec_normalize_ranges(size_t *ranges, size_t amount) {
+//    Vector normalized_ranges = vec_new(sizeof(size_t), ranges, amount*2);
+//    return normalized_ranges;
+//}
+//void vec_remove_ranges_unchecked(Vector *vec, size_t *ranges, size_t amount) { }
+//VEC_REMOVE_RANGE_RESULT vec_remove_ranges(Vector *vec, size_t *ranges, size_t amount) { return VRERR_OK; }
 
 /// Performs a binary search on the given vector
 ///
