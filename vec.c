@@ -395,6 +395,55 @@ VEC_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (
     return VSR_NOT_FOUND;
 }
 
+// TODO: Document
+void vec_insert_unchecked(Vector *vec, size_t index, void *data) {
+    // Copy the `data` as it might exist in the vector, we don't want to rewrite it while shifting
+    void *value_copy = malloc(vec->size);
+    memcpy(value_copy, data, vec->size);
+
+    vec->len++;
+    if (vec->cap < vec->len) {
+        if (vec->cap == 0) {
+            vec_reserve_unchecked(vec, 1);
+        } else {
+            vec_reserve_unchecked(vec, vec->cap*2);
+        }
+    }
+
+    // If we're not inserting at the end of the vector we need to shift the vectors' data
+    if (!(index == vec->len-1)) {
+        memcpy(vec_get_unchecked(vec, index+1), vec_get_unchecked(vec, index), vec->size*(vec->len-index));
+    }
+
+    memcpy(vec_get_unchecked(vec, index), value_copy, vec->size);
+    free(value_copy);
+}
+
+// TODO: Document
+VEC_INSERT_RESULT vec_insert(Vector *vec, size_t index, void *data) {
+    if (vec == NULL) { return VISR_INVALID_VEC; }
+    if (vec->data == NULL) { return VISR_INVALID_VEC_DATA; }
+    if (data == NULL) { return VISR_INVALID_DATA; }
+    if (index > vec->len) { return VISR_OUT_OF_BOUNDS; }
+
+    vec_insert_unchecked(vec, index, data);
+    return VISR_OK;
+}
+
+//void _vec_insertion_sort(Vector *vec) {
+//    for (size_t i = 0; i < vec->len; i++) {
+//        for (size_t j = i; j >= 0; j--) {
+//            if (*(int*)vec_get_unchecked(vec, j) <= *(int*)vec_get_unchecked(vec, i)) {
+//
+//            }
+//        }
+//    }
+//}
+
+//int TIMSORT_RUN_SIZE = 32;
+//void vec_sort_unchecked(Vector *vec) {
+//}
+
 /// Comp function of binary search for `ints`
 VEC_BINARY_SEARCH_COMP_RESULT vbsc_int(void *current_num, void *searched_num) {
     if (*(int*)current_num > *(int*)searched_num) { return VBSCR_LEFT; }

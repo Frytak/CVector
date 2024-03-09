@@ -162,6 +162,24 @@ typedef enum {
 } VEC_DROP_RESULT;
 
 typedef enum {
+    // No errors, data inserted successfully
+    VISR_OK,
+
+    // Invalid pointer to vector
+    VISR_INVALID_VEC,
+
+    // Invalid pointer to data of a vector
+    VISR_INVALID_VEC_DATA,
+
+    // Invalid pointer to data
+    VISR_INVALID_DATA,
+
+    // Index is larger than vectors length.
+    // It can be between <0,vec.len>.
+    VISR_OUT_OF_BOUNDS,
+} VEC_INSERT_RESULT;
+
+typedef enum {
     PVPT_INT,
     PVPT_STRING,
 } P_VEC_PRINT_TYPE;
@@ -181,6 +199,8 @@ typedef struct Vector {
     void *data;
 } Vector;
 extern const Vector VEC_VARIADIC_END;
+
+void _vec_insertion_sort(Vector *vec);
 
 size_t _vec_get_p2_cap(size_t amount);
 
@@ -204,6 +224,9 @@ void vec_push_unchecked(Vector *vec, void *data);
 VEC_PUSH_RESULT vec_push(Vector *vec, void *data);
 void vec_push_multi_unchecked(Vector *vec, void *data, size_t amount);
 VEC_PUSH_RESULT vec_push_multi(Vector *vec, void *data, size_t amount);
+
+void vec_insert_unchecked(Vector *vec, size_t index, void *data);
+VEC_INSERT_RESULT vec_insert(Vector *vec, size_t index, void *data);
 
 void vec_remove_unchecked(Vector *vec, size_t index);
 VEC_REMOVE_RESULT vec_remove(Vector *vec, size_t index);

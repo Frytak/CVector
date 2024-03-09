@@ -13,6 +13,7 @@ gcc -o test ^
 .\vec_is_partial_eq\vec_is_partial_eq_test.c ^
 .\vec_push\vec_push_test.c ^
 .\vec_push_multi\vec_push_multi_test.c ^
+.\vec_insert\vec_insert_test.c ^
 .\vec_remove\vec_remove_test.c ^
 .\vec_remove_range\vec_remove_range_test.c ^
 .\vec_remove_normalized_ranges\vec_remove_normalized_ranges_test.c ^
