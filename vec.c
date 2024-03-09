@@ -144,6 +144,15 @@ VEC_RESERVE_RESULT vec_reserve(Vector *vec, size_t cap) {
     return VRR_OK;
 }
 
+// Doubles the capacity of a vector, or assigns `1` if the capacity is `0`.
+void _vec_reserve_double(Vector *vec) {
+    if (vec->cap == 0) {
+        vec_reserve_unchecked(vec, 1);
+    } else {
+        vec_reserve_unchecked(vec, vec->cap * 2);
+    }
+}
+
 /// Initializes the vector with the given data if any
 VEC_INIT_RESULT vec_init(Vector *vec, size_t size, void *data, size_t amount) {
     if (vec == NULL) { return VIR_INVALID_VEC; }
@@ -222,11 +231,7 @@ void vec_push_unchecked(Vector *vec, void *data) {
 
     // Double the capacity if there is not enough space
     if (vec->len > vec->cap) {
-        if (vec->cap == 0) {
-            vec_reserve_unchecked(vec, 1);
-        } else {
-            vec_reserve_unchecked(vec, vec->cap * 2);
-        }
+        _vec_reserve_double(vec);
     }
 
     // Copy the data
@@ -403,11 +408,7 @@ void vec_insert_unchecked(Vector *vec, size_t index, void *data) {
 
     vec->len++;
     if (vec->cap < vec->len) {
-        if (vec->cap == 0) {
-            vec_reserve_unchecked(vec, 1);
-        } else {
-            vec_reserve_unchecked(vec, vec->cap*2);
-        }
+        _vec_reserve_double(vec);
     }
 
     // If we're not inserting at the end of the vector we need to shift the vectors' data
