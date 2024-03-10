@@ -1,5 +1,6 @@
 #include <corecrt.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -374,6 +375,7 @@ VEC_REMOVE_NORMALIZED_RANGES_RESULT vec_remove_normalized_ranges(Vector *vec, si
 VEC_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched) {
     if (vec == NULL) { return VSR_INVALID_VEC; }
     if (comp == NULL) { return VSR_INVALID_COMP; }
+    // TODO: This error check shouldn't be here
     if (searched == NULL) { return VSR_INVALID_SEARCHED; }
     if (vec->len < end || vec->len < beg) { return VSR_OUT_OF_BOUNDS; }
     if (beg >= end) { return VSR_INVALID_BOUNDS; }
@@ -580,6 +582,27 @@ void vec_swap(Vector *vec, size_t first_index, size_t second_index) {
     vec_swap_unchecked(vec, first_index, second_index);
 }
 
+void vec_read_ascii_line_unchecked(Vector *vec, FILE *file) {
+    int character = EOF;
+    char terminator = '\0';
+
+    do {
+        character = fgetc(file);
+        if (character == '\n') { vec_push_unchecked(vec, &terminator); return; }
+        vec_push_unchecked(vec, &character);
+    } while (character != EOF);
+}
+
+// TODO: Errors
+void vec_read_ascii_line(Vector *vec, FILE *file) {
+    if (vec == NULL) { return; }
+    if (vec->data == NULL) { return; }
+    if (file == NULL) { return; }
+    if (feof(file) != 0) { return; }
+
+    vec_read_ascii_line_unchecked(vec, file);
+}
+
 int vec_read_file(Vector *vec, char file_name[], size_t *bytes_written, bool minimize) {
     FILE *file;
     int err = 0;
@@ -638,28 +661,123 @@ file_read:
     return err;
 }
 
-void p_vec_info(Vector *vec) {
-    if (vec == NULL) { fprintf(stderr, "%sWARNING: Could not print `vector` because the value passed was NULL.%s", CMD_ESC_YELLOW, CMD_ESC_RESET); return; }
-    printf("{ len: %lld, cap: %lld, size: %lld, data: ", vec->len, vec->cap, vec->size);
+void vec_finfo(FILE *file, Vector *vec) {
+    fprintf(file, "{ len: %lld, cap: %lld, size: %lld, data: ", vec->len, vec->cap, vec->size);
 
     if (vec->data != NULL) {
-        printf("%p", vec->data);
+        fprintf(file, "0x%p", vec->data);
     } else {
-        printf("NULL");
+        fprintf(file, "NULL");
     }
 
-    printf(" }");
+    fprintf(file, " }");
 }
 
-static inline void p_vec_fprint_int(FILE *file, void *data) { fprintf(file, "%d", *(int*)data); }
-static inline void p_vec_fprint_string(FILE *file, void *data) { fprintf(file, "\"%s\"", (char*)data); }
+void vec_info(Vector *vec) {
+    vec_finfo(stdout, vec);
+}
 
-void p_vec_fprint(FILE *file, Vector *vec, P_VEC_PRINT_TYPE type) {
+/// Checks if the given ASCII character has a visual representation
+bool is_char_printable(char c) {
+    return !(
+        // All ASCII control characters
+        c < '\037'
+
+        // Extended ASCII codes that are currently unused
+        || c == '\177'
+        || c == '\201'
+        || c == '\215'
+        || c == '\217'
+        || c == '\220'
+        || c == '\235'
+        || c == '\240'
+        || c == '\255'
+    );
+}
+
+#define VEC_FPRINTF_FUNC(name, specifier, type) \
+    static inline void vec_fprint_##name(FILE *file, void *data) { \
+        fprintf(file, specifier, type data); \
+    }
+
+VEC_FPRINTF_FUNC(u8, "%hhu", *(uint8_t*));
+VEC_FPRINTF_FUNC(i8, "%hhi", *(int8_t*));
+VEC_FPRINTF_FUNC(u16, "%hu", *(uint16_t*));
+VEC_FPRINTF_FUNC(i16, "%hi", *(int16_t*));
+VEC_FPRINTF_FUNC(u32, "%u", *(uint32_t*));
+VEC_FPRINTF_FUNC(i32, "%i", *(int32_t*));
+VEC_FPRINTF_FUNC(u64, "%llu", *(uint64_t*));
+VEC_FPRINTF_FUNC(i64, "%lli", *(int64_t*));
+VEC_FPRINTF_FUNC(f, "%f", *(float*));
+VEC_FPRINTF_FUNC(lf, "%lf", *(double*));
+
+static inline void vec_fprint_c(FILE *file, void *data) {
+    if (!is_char_printable(*(char*)data)) {
+        fprintf(file, "\'\\%hhu\'", *(char*)data);
+    } else {
+        fprintf(file, "\'%c\'", *(char*)data);
+    }
+}
+
+static inline void vec_fprint_s(FILE *file, void *data) {
+    fprintf(file, "\"");
+
+    for (char *current_char = *(char**)data; *current_char != '\0'; current_char++) {
+        if (!is_char_printable(*current_char)) {
+            fprintf(file, "\\%hhu", *current_char);
+        } else {
+            fprintf(file, "%c", *current_char);
+        }
+    }
+
+    fprintf(file, "\"");
+}
+
+static inline void vec_fprint_ss(FILE *file, void *data) {
+    fprintf(file, "\"");
+
+    for (char *current_char = (char*)data; *current_char != '\0'; current_char++) {
+        if (!is_char_printable(*current_char)) {
+            fprintf(file, "\\%hhu", *current_char);
+        } else {
+            fprintf(file, "%c", *current_char);
+        }
+    }
+
+    fprintf(file, "\"");
+}
+
+static inline void vec_fprint_p(FILE *file, void *data) {
+    if (*(void**)data == NULL) {
+        fprintf(file, "NULL");
+    } else {
+        fprintf(file, "0x%p", *(void**)data);
+    }
+}
+
+static inline void vec_fprint_v(FILE *file, void *data) {
+    vec_finfo(file, (Vector*)data);
+}
+
+// TODO: Error handling
+void vec_fprint(FILE *file, Vector *vec, VEC_PRINT_TYPE type) {
     void (*print_func)(FILE*, void*);
     switch (type) {
-        // TODO: Implement the rest of the types
-        case PVPT_STRING: { print_func = p_vec_fprint_string; break; }
-        case PVPT_INT: { print_func = p_vec_fprint_int; break; }
+        case VPT_U8: { print_func = vec_fprint_u8; break; }
+        case VPT_I8: { print_func = vec_fprint_i8; break; }
+        case VPT_U16: { print_func = vec_fprint_u16; break; }
+        case VPT_I16: { print_func = vec_fprint_i16; break; }
+        case VPT_U32: { print_func = vec_fprint_u32; break; }
+        case VPT_I32: { print_func = vec_fprint_i32; break; }
+        case VPT_U64: { print_func = vec_fprint_u64; break; }
+        case VPT_I64: { print_func = vec_fprint_i64; break; }
+        case VPT_FLOAT: { print_func = vec_fprint_f; break; }
+        case VPT_DOUBLE: { print_func = vec_fprint_lf; break; }
+        case VPT_CHAR: { print_func = vec_fprint_c; break; }
+        case VPT_STRING: { print_func = vec_fprint_s; break; }
+        case VPT_STRING_STATIC: { print_func = vec_fprint_ss; break; }
+        case VPT_POINTER: { print_func = vec_fprint_p; break; }
+        case VPT_VECTOR: { print_func = vec_fprint_v; break; }
     }
 
     fprintf(file, "[");
@@ -671,8 +789,8 @@ void p_vec_fprint(FILE *file, Vector *vec, P_VEC_PRINT_TYPE type) {
     fprintf(file, "]");
 }
 
-void p_vec_print(Vector *vec, P_VEC_PRINT_TYPE type) {
-    p_vec_fprint(stdout, vec, type);
+void vec_print(Vector *vec, VEC_PRINT_TYPE type) {
+    vec_fprint(stdout, vec, type);
 }
 
-// TODO: `p_vec_print_custom` for custom types
+// TODO: `vec_print_custom` for custom types

@@ -20,6 +20,7 @@ gcc -o test ^
 .\vec_binary_search\vec_binary_search_test.c ^
 .\vec_find_first\vec_find_first_test.c ^
 .\vec_copy\vec_copy_test.c ^
+.\vec_fprint\vec_fprint_test.c ^
 .\test.c
 
 ECHO Launching tests...

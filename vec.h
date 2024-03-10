@@ -180,10 +180,24 @@ typedef enum {
 } VEC_INSERT_RESULT;
 
 typedef enum {
-    PVPT_INT,
-    PVPT_STRING,
-} P_VEC_PRINT_TYPE;
-
+    VPT_U8, // Format specifier: `%hhu`.
+    VPT_I8, // Format specifier: `%hhi`.
+    VPT_U16, // Format specifier: `%hu`.
+    VPT_I16, // Format specifier: `%hi`.
+    VPT_U32, // Format specifier: `%u`.
+    VPT_I32, // Format specifier: `%i`.
+    VPT_U64, // Format specifier: `%llu`.
+    VPT_I64, // Format specifier: `%lli`.
+    VPT_FLOAT, // Format specifier: `%f`.
+    VPT_DOUBLE, // Format specifier: `%lf`.
+    VPT_CHAR, // Format specifier: `'%c'` (all non printable ASCII characters are turned into their decimal representation with a `\` at the beggining).
+    VPT_STRING, // Format specifier: `"%s"` (all non printable ASCII characters are turned into their decimal representation with a `\` at the beggining).
+    // Format specifier: `"%s"` (all non printable ASCII characters are turned into their decimal representation with a `\` at the beggining).
+    // A string directly kept in the vector.
+    VPT_STRING_STATIC,
+    VPT_POINTER, // Format specifier: `%p`.
+    VPT_VECTOR, // Prints information about the contained vectors.
+} VEC_PRINT_TYPE;
 
 /// A Vector consisting of:
 ///   - len: amount of elements that the vector currently holds
@@ -237,9 +251,11 @@ VEC_REMOVE_NORMALIZED_RANGES_RESULT vec_remove_normalized_ranges(Vector *vec, si
 
 VEC_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched);
 VEC_BINARY_SEARCH_COMP_RESULT vbsc_int(void *current_num, void *searched_num);
+VEC_BINARY_SEARCH_COMP_RESULT vbsc_rf(void *current_char, void *_);
 
 VEC_SEARCH_RESULT vec_find_first(Vector *vec, bool (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched);
 bool vc_int(void *current_num, void *searched_num);
+bool vc_char(void *current_num, void *searched_num);
 
 bool vec_is_partial_eq_unchecked(Vector *vec1, Vector *vec2);
 bool vec_is_partial_eq(Vector *vec1, Vector *vec2, VEC_EQ_RESULT *result);
@@ -255,11 +271,13 @@ void vec_swap_unchecked(Vector *vec, size_t first_index, size_t second_index);
 
 void vec_swap(Vector *vec, size_t first_index, size_t second_index);
 
+void vec_read_ascii_line_unchecked(Vector *vec, FILE *file);
+void vec_read_ascii_line(Vector *vec, FILE *file);
 errno_t vec_read_file(Vector *vec, char file_name[], size_t *bytes_written, bool minimize);
 
 #define CMD_ESC_YELLOW "\033[33m"
 #define CMD_ESC_RESET "\033[0m"
 
-void p_vec_info(Vector *vec);
-void p_vec_fprint(FILE *file, Vector *vec, P_VEC_PRINT_TYPE type);
-void p_vec_print(Vector *vec, P_VEC_PRINT_TYPE type);
+void vec_info(Vector *vec);
+void vec_fprint(FILE *file, Vector *vec, VEC_PRINT_TYPE type);
+void vec_print(Vector *vec, VEC_PRINT_TYPE type);
