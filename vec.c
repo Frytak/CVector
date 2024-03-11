@@ -1,6 +1,7 @@
 #include <corecrt.h>
 #include <stdarg.h>
 #include <stdint.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -661,22 +662,6 @@ file_read:
     return err;
 }
 
-void vec_finfo(FILE *file, Vector *vec) {
-    fprintf(file, "{ len: %lld, cap: %lld, size: %lld, data: ", vec->len, vec->cap, vec->size);
-
-    if (vec->data != NULL) {
-        fprintf(file, "0x%p", vec->data);
-    } else {
-        fprintf(file, "NULL");
-    }
-
-    fprintf(file, " }");
-}
-
-void vec_info(Vector *vec) {
-    vec_finfo(stdout, vec);
-}
-
 /// Checks if the given ASCII character has a visual representation
 bool is_char_printable(char c) {
     return !(
@@ -751,8 +736,24 @@ static inline void vec_fprint_p(FILE *file, void *data) {
     if (*(void**)data == NULL) {
         fprintf(file, "NULL");
     } else {
-        fprintf(file, "0x%p", *(void**)data);
+        fprintf(file, "0x%016llX", *(uintptr_t*)data);
     }
+}
+
+void vec_finfo(FILE *file, Vector *vec) {
+    fprintf(file, "{ len: %lld, cap: %lld, size: %lld, data: ", vec->len, vec->cap, vec->size);
+
+    if (vec->data != NULL) {
+        vec_fprint_p(file, &vec->data);
+    } else {
+        fprintf(file, "NULL");
+    }
+
+    fprintf(file, " }");
+}
+
+void vec_info(Vector *vec) {
+    vec_finfo(stdout, vec);
 }
 
 static inline void vec_fprint_v(FILE *file, void *data) {
