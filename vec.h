@@ -1,8 +1,24 @@
+#include <stdint.h>
 #include <stdio.h>
 #define _FRYTAK_VEC
 
 #include <corecrt.h>
 #include <stdbool.h>
+
+typedef struct {
+    bool PRINT_WITH_COLORS;
+    bool FPRINT_WITH_COLORS;
+    uint8_t TIMSORT_RUN_SIZE;
+} Config;
+
+bool vec_cg_print_colors();
+void vec_cs_print_colors(bool set);
+
+bool vec_cg_fprint_colors();
+void vec_cs_fprint_colors(bool set);
+
+uint8_t vec_cg_timsort_run_size();
+void vec_cs_timsort_run_size(uint8_t set);
 
 // Vector binary search comparison function return values
 typedef enum {
@@ -275,8 +291,11 @@ void vec_read_ascii_line_unchecked(Vector *vec, FILE *file);
 void vec_read_ascii_line(Vector *vec, FILE *file);
 errno_t vec_read_file(Vector *vec, char file_name[], size_t *bytes_written, bool minimize);
 
-#define CMD_ESC_YELLOW "\033[33m"
-#define CMD_ESC_RESET "\033[0m"
+#define VEC_CMD_ESC_RED "\033[31m"
+#define VEC_CMD_ESC_YELLOW "\033[33m"
+#define VEC_CMD_ESC_BRIGHT_YELLOW "\033[93m"
+#define VEC_CMD_ESC_BRIGHT_GREEN "\033[92m"
+#define VEC_CMD_ESC_RESET "\033[0m"
 
 void vec_info(Vector *vec);
 void vec_fprint(FILE *file, Vector *vec, VEC_PRINT_TYPE type);

@@ -1,13 +1,27 @@
 #include <corecrt.h>
 #include <stdarg.h>
 #include <stdint.h>
-#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include <vadefs.h>
 #include "vec.h"
+
+Config CONFIG = {
+    true, // bool PRINT_WITH_COLORS
+    true, // bool FPRINT_WITH_COLORS
+    32, // uint8_t TIMSORT_RUN_SIZE
+};
+
+bool vec_cg_print_colors() { return CONFIG.PRINT_WITH_COLORS; }
+void vec_cs_print_colors(bool set) { CONFIG.PRINT_WITH_COLORS = set; }
+
+bool vec_cg_fprint_colors() { return CONFIG.FPRINT_WITH_COLORS; }
+void vec_cs_fprint_colors(bool set) { CONFIG.FPRINT_WITH_COLORS = set; }
+
+uint8_t vec_cg_timsort_run_size() { return CONFIG.TIMSORT_RUN_SIZE; }
+void vec_cs_timsort_run_size(uint8_t set) { CONFIG.TIMSORT_RUN_SIZE = set; }
 
 /// Denotes the last argument passed to a variadic function
 const Vector VEC_VARIADIC_END = { 285, 3, 456, NULL };
@@ -444,7 +458,6 @@ VEC_INSERT_RESULT vec_insert(Vector *vec, size_t index, void *data) {
 //    }
 //}
 
-//int TIMSORT_RUN_SIZE = 32;
 //void vec_sort_unchecked(Vector *vec) {
 //}
 
@@ -685,6 +698,13 @@ bool is_char_printable(char c) {
         fprintf(file, specifier, type data); \
     }
 
+#define HAS_COLORED_OUTPUT(assign, funcname) \
+    if ((CONFIG.FPRINT_WITH_COLORS && file != stdout) || (CONFIG.PRINT_WITH_COLORS && file == stdout)) { \
+        assign = vec_fprintc_##funcname; \
+    } else { \
+        assign = vec_fprint_##funcname; \
+    }
+
 VEC_FPRINTF_FUNC(u8, "%hhu", *(uint8_t*));
 VEC_FPRINTF_FUNC(i8, "%hhi", *(int8_t*));
 VEC_FPRINTF_FUNC(u16, "%hu", *(uint16_t*));
@@ -697,11 +717,27 @@ VEC_FPRINTF_FUNC(f, "%f", *(float*));
 VEC_FPRINTF_FUNC(lf, "%lf", *(double*));
 
 static inline void vec_fprint_c(FILE *file, void *data) {
+    fprintf(file, "\'");
+
     if (!is_char_printable(*(char*)data)) {
-        fprintf(file, "\'\\%hhu\'", *(char*)data);
+        fprintf(file, "\\%hhu", *(char*)data);
     } else {
-        fprintf(file, "\'%c\'", *(char*)data);
+        fprintf(file, "%c", *(char*)data);
     }
+
+    fprintf(file, "\'");
+}
+
+static inline void vec_fprintc_c(FILE *file, void *data) {
+    fprintf(file, VEC_CMD_ESC_BRIGHT_GREEN "\'");
+
+    if (!is_char_printable(*(char*)data)) {
+        fprintf(file, VEC_CMD_ESC_RED "\\%hhu" VEC_CMD_ESC_BRIGHT_GREEN, *(char*)data);
+    } else {
+        fprintf(file, "%c", *(char*)data);
+    }
+
+    fprintf(file, "\'" VEC_CMD_ESC_RESET);
 }
 
 static inline void vec_fprint_s(FILE *file, void *data) {
@@ -718,6 +754,20 @@ static inline void vec_fprint_s(FILE *file, void *data) {
     fprintf(file, "\"");
 }
 
+static inline void vec_fprintc_s(FILE *file, void *data) {
+    fprintf(file, VEC_CMD_ESC_BRIGHT_GREEN "\"");
+
+    for (char *current_char = *(char**)data; *current_char != '\0'; current_char++) {
+        if (!is_char_printable(*current_char)) {
+            fprintf(file, VEC_CMD_ESC_RED "\\%hhu" VEC_CMD_ESC_BRIGHT_GREEN, *current_char);
+        } else {
+            fprintf(file, "%c", *current_char);
+        }
+    }
+
+    fprintf(file, "\"" VEC_CMD_ESC_RESET);
+}
+
 static inline void vec_fprint_ss(FILE *file, void *data) {
     fprintf(file, "\"");
 
@@ -732,6 +782,20 @@ static inline void vec_fprint_ss(FILE *file, void *data) {
     fprintf(file, "\"");
 }
 
+static inline void vec_fprintc_ss(FILE *file, void *data) {
+    fprintf(file, VEC_CMD_ESC_BRIGHT_GREEN "\"");
+
+    for (char *current_char = (char*)data; *current_char != '\0'; current_char++) {
+        if (!is_char_printable(*current_char)) {
+            fprintf(file, VEC_CMD_ESC_RED "\\%hhu" VEC_CMD_ESC_BRIGHT_GREEN, *current_char);
+        } else {
+            fprintf(file, "%c", *current_char);
+        }
+    }
+
+    fprintf(file, "\"" VEC_CMD_ESC_RESET);
+}
+
 static inline void vec_fprint_p(FILE *file, void *data) {
     if (*(void**)data == NULL) {
         fprintf(file, "NULL");
@@ -740,11 +804,19 @@ static inline void vec_fprint_p(FILE *file, void *data) {
     }
 }
 
-void vec_finfo(FILE *file, Vector *vec) {
-    fprintf(file, "{ len: %lld, cap: %lld, size: %lld, data: ", vec->len, vec->cap, vec->size);
+static inline void vec_fprintc_p(FILE *file, void *data) {
+    if (*(void**)data == NULL) {
+        fprintf(file, VEC_CMD_ESC_BRIGHT_YELLOW "NULL" VEC_CMD_ESC_RESET);
+    } else {
+        fprintf(file, VEC_CMD_ESC_YELLOW "0x%016llX" VEC_CMD_ESC_RESET, *(uintptr_t*)data);
+    }
+}
 
-    if (vec->data != NULL) {
-        vec_fprint_p(file, &vec->data);
+static inline void vec_fprint_v(FILE *file, void *data) {
+    fprintf(file, "{ len: %lld, cap: %lld, size: %lld, data: ", ((Vector*)data)->len, ((Vector*)data)->cap, ((Vector*)data)->size);
+
+    if (((Vector*)data)->data != NULL) {
+        vec_fprint_p(file, &((Vector*)data)->data);
     } else {
         fprintf(file, "NULL");
     }
@@ -752,12 +824,24 @@ void vec_finfo(FILE *file, Vector *vec) {
     fprintf(file, " }");
 }
 
-void vec_info(Vector *vec) {
-    vec_finfo(stdout, vec);
+static inline void vec_fprint_v(FILE *file, void *data) {
+    fprintf(file, "{ len: %lld, cap: %lld, size: %lld, data: ", ((Vector*)data)->len, ((Vector*)data)->cap, ((Vector*)data)->size);
+
+    if (((Vector*)data)->data != NULL) {
+        vec_fprint_p(file, &((Vector*)data)->data);
+    } else {
+        fprintf(file, "NULL");
+    }
+
+    fprintf(file, " }");
 }
 
-static inline void vec_fprint_v(FILE *file, void *data) {
-    vec_finfo(file, (Vector*)data);
+void vec_finfo(FILE *file, Vector *vec) {
+    vec_fprint_v(file, vec);
+}
+
+void vec_info(Vector *vec) {
+    vec_finfo(stdout, vec);
 }
 
 // TODO: Error handling
@@ -774,10 +858,10 @@ void vec_fprint(FILE *file, Vector *vec, VEC_PRINT_TYPE type) {
         case VPT_I64: { print_func = vec_fprint_i64; break; }
         case VPT_FLOAT: { print_func = vec_fprint_f; break; }
         case VPT_DOUBLE: { print_func = vec_fprint_lf; break; }
-        case VPT_CHAR: { print_func = vec_fprint_c; break; }
-        case VPT_STRING: { print_func = vec_fprint_s; break; }
-        case VPT_STRING_STATIC: { print_func = vec_fprint_ss; break; }
-        case VPT_POINTER: { print_func = vec_fprint_p; break; }
+        case VPT_CHAR: { HAS_COLORED_OUTPUT(print_func, c); break; }
+        case VPT_STRING: { HAS_COLORED_OUTPUT(print_func, s); break; }
+        case VPT_STRING_STATIC: { HAS_COLORED_OUTPUT(print_func, ss); break; }
+        case VPT_POINTER: { HAS_COLORED_OUTPUT(print_func, p); break; }
         case VPT_VECTOR: { print_func = vec_fprint_v; break; }
     }
 

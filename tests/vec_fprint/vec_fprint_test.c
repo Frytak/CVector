@@ -82,6 +82,15 @@ int vec_fprint_test() {
         vec_drop(NULL, &vec, &expected, &output)
     );
 
+    vec = vec_new(DATA_STRING_STATIC_SIZE, (void*)DATA_STRING_STATIC, DATA_STRING_STATIC_LEN);
+    vec_print(&vec, VPT_STRING_STATIC);
+    vec_drop_single(&vec);
+    printf("\n");
+
+    vec = vec_new(DATA_POINTER_SIZE, (void*)DATA_POINTER, DATA_POINTER_LEN);
+    vec_print(&vec, VPT_POINTER);
+    vec_drop_single(&vec);
+
     fclose(output_file);
     fclose(expected_file);
     return result;
