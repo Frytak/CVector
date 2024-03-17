@@ -21,7 +21,7 @@ int vec_get_test() {
 
     bool contains_all = true;
     for (size_t i = 0; i < DATA1_LEN; i++) {
-        if (*(int*)vec_get_unchecked(&vec, i) != DATA1[i]) { contains_all = false; };
+        if (*(int*)vec_get_s(&vec, i) != DATA1[i]) { contains_all = false; };
     }
 
     end_test(
@@ -35,7 +35,7 @@ int vec_get_test() {
 
     contains_all = true;
     for (size_t i = 0; i < DATA1_LEN; i++) {
-        if (*(int*)vec_get_unchecked(&vec, i) != DATA1[i]) { contains_all = false; };
+        if (*(int*)vec_get_s(&vec, i) != DATA1[i]) { contains_all = false; };
     }
 
     end_test(
@@ -45,20 +45,20 @@ int vec_get_test() {
 
     // Test 3: error handling
     start_test(3);
-    void *error1 = vec_get(NULL, 0);
-    void *error2 = vec_get(&vec, DATA1_LEN + 3);
+    void *error1 = vec_get_s(NULL, 0);
+    void *error2 = vec_get_s(&vec, DATA1_LEN + 3);
 
     vec.size = 0;
-    void *error3 = vec_get(&vec, 0);
+    void *error3 = vec_get_s(&vec, 0);
 
     vec.size = DATA1_SIZE;
-    void *ok = vec_get(&vec, 0);
+    void *ok = vec_get_s(&vec, 0);
 
-    drop_test_vecs(vec_drop_single(&vec));
+    drop_test_vecs(vec_drop_single_s(&vec));
     vec.cap = DATA1_CAP;
     vec.len = DATA1_LEN;
     vec.size = DATA1_SIZE;
-    void *error4 = vec_get(&vec, 0);
+    void *error4 = vec_get_s(&vec, 0);
 
     end_test(
         error1 == NULL && error2 == NULL && ok != NULL && error3 == NULL && error4 == NULL,

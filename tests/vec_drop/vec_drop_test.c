@@ -22,7 +22,7 @@ int vec_drop_test() {
     start_test(1);
     vec1 = vec_new(DATA1_SIZE, (void*)DATA1, DATA1_LEN);
 
-    vec_drop_single_unchecked(&vec1);
+    vec_drop_single(&vec1);
     end_test(
         vec1.len == 0 && vec1.cap == 0 && vec1.size == 0 && vec1.data == NULL,
         NULL
@@ -34,7 +34,7 @@ int vec_drop_test() {
     vec2 = vec_new(DATA2_SIZE, (void*)DATA2, DATA2_LEN);
     vec3 = vec_new(DATA5_SIZE, (void*)DATA5, DATA5_LEN);
 
-    vec_drop_unchecked(&vec1, &vec2, &vec3);
+    vec_drop(&vec1, &vec2, &vec3);
     end_test(
         vec1.len == 0 && vec1.cap == 0 && vec1.size == 0 && vec1.data == NULL
         && vec2.len == 0 && vec2.cap == 0 && vec2.size == 0 && vec2.data == NULL
@@ -46,9 +46,9 @@ int vec_drop_test() {
     start_test(3);
     vec1 = vec_new(DATA1_SIZE, (void*)DATA1, DATA1_LEN);
 
-    VEC_DROP_RESULT error1 = vec_drop_single(NULL);
-    VEC_DROP_RESULT ok1 = vec_drop_single(&vec1);
-    VEC_DROP_RESULT error2 = vec_drop_single(&vec1);
+    VEC_DROP_RESULT error1 = vec_drop_single_s(NULL);
+    VEC_DROP_RESULT ok1 = vec_drop_single_s(&vec1);
+    VEC_DROP_RESULT error2 = vec_drop_single_s(&vec1);
     end_test(
         vec1.len == 0 && vec1.cap == 0 && vec1.size == 0 && vec1.data == NULL
         && error1 == VDR_INVALID_VEC && error2 == VDR_INVALID_VEC_DATA && ok1 == VDR_OK,
@@ -61,31 +61,24 @@ int vec_drop_test() {
     vec2 = vec_new(DATA2_SIZE, (void*)DATA2, DATA2_LEN);
     vec3 = vec_new(DATA5_SIZE, (void*)DATA5, DATA5_LEN);
 
-    size_t error3_index = 10;
-    VEC_DROP_RESULT error3 = vec_drop(&error3_index, NULL, &vec2, &vec3);
-
-    size_t error4_index = 10;
-    VEC_DROP_RESULT error4 = vec_drop(&error4_index, &vec1, &vec2, NULL);
-
-    size_t error5_index = 10;
-    VEC_DROP_RESULT error5 = vec_drop(&error5_index, &vec1, &vec2, &vec3);
-    drop_test_vecs(vec_drop_single(&vec3));
+    VEC_DROP_RESULT error3 = vec_drop_s(&vec1, NULL, &vec3);
+    VEC_DROP_RESULT error4 = vec_drop_s(&vec1, &vec2, NULL);
+    VEC_DROP_RESULT error5 = vec_drop_s(&vec1, &vec2, &vec3);
 
     vec1 = vec_new(DATA1_SIZE, (void*)DATA1, DATA1_LEN);
     vec2 = vec_new(DATA2_SIZE, (void*)DATA2, DATA2_LEN);
     vec3 = vec_new(DATA5_SIZE, (void*)DATA5, DATA5_LEN);
 
-    size_t ok2_index = 10;
-    VEC_DROP_RESULT ok2 = vec_drop(&ok2_index, &vec1, &vec2, &vec3);
+    VEC_DROP_RESULT ok2 = vec_drop_s(&vec1, &vec2, &vec3);
 
     end_test(
         vec1.len == 0 && vec1.cap == 0 && vec1.size == 0 && vec1.data == NULL
         && vec2.len == 0 && vec2.cap == 0 && vec2.size == 0 && vec2.data == NULL
         && vec3.len == 0 && vec3.cap == 0 && vec3.size == 0 && vec3.data == NULL
-        && error3_index == 0 && error3 == VDR_INVALID_VEC
-        && error4_index == 2 && error4 == VDR_INVALID_VEC
-        && error5_index == 0 && error5 == VDR_INVALID_VEC_DATA
-        && ok2_index == 10 && ok2 == VDR_OK,
+        && error3 == VDR_INVALID_VEC
+        && error4 == VDR_INVALID_VEC_DATA
+        && error5 == VDR_INVALID_VEC_DATA
+        && ok2 == VDR_OK,
         NULL
     );
 

@@ -67,12 +67,12 @@ int vec_new_test() {
 
     bool contains_all = true;
     for (size_t i = 0; i < DATA1_LEN; i++) {
-        if (*(int*)vec_get_unchecked(&vec, i) != DATA1[i]) { contains_all = false; }
+        if (*(int*)vec_get_s(&vec, i) != DATA1[i]) { contains_all = false; }
     }
 
     end_test(
         vec.cap == DATA1_CAP && vec.len == DATA1_LEN && vec.data != NULL && vec.size == DATA1_SIZE && contains_all,
-        vec_drop_single(&vec)
+        vec_drop_single_s(&vec)
     );
 
     // Test 7: error handling
@@ -82,7 +82,7 @@ int vec_new_test() {
 
     end_test(
         error1 == VIR_INVALID_VEC && ok == VIR_OK,
-        vec_drop_single(&vec)
+        vec_drop_single_s(&vec)
     );
 
     return result;

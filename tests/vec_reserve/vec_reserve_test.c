@@ -22,7 +22,7 @@ int vec_reserve_test() {
     start_test(1);
     vec = vec_new(DATA1_SIZE, (void*)DATA1, DATA1_LEN);
     new_cap = 16;
-    vec_reserve_unchecked(&vec, new_cap);
+    vec_reserve(&vec, new_cap);
 
     end_test(
         vec.len == DATA1_LEN && vec.cap == new_cap && vec.size == DATA1_SIZE && vec.data != NULL
@@ -33,7 +33,7 @@ int vec_reserve_test() {
     // Test 2: reserve memory in different quantity than a power of two for the same vector (16 -> 19)
     start_test(2);
     new_cap = 19;
-    vec_reserve_unchecked(&vec, new_cap);
+    vec_reserve(&vec, new_cap);
 
     end_test(
         vec.len == DATA1_LEN && vec.cap == new_cap && vec.size == DATA1_SIZE && vec.data != NULL
@@ -44,7 +44,7 @@ int vec_reserve_test() {
     // Test 3: reserve less memory than the currents vector length for the same vector (19 -> 3)
     start_test(3);
     new_cap = 3;
-    vec_reserve_unchecked(&vec, new_cap);
+    vec_reserve(&vec, new_cap);
 
     end_test(
         vec.len == new_cap && vec.cap == new_cap && vec.size == DATA1_SIZE && vec.data != NULL
@@ -55,7 +55,7 @@ int vec_reserve_test() {
     // Test 4: reserve no memory for the same vector (3 -> 0)
     start_test(4);
     new_cap = 0;
-    vec_reserve_unchecked(&vec, new_cap);
+    vec_reserve(&vec, new_cap);
 
     end_test(
         vec.len == new_cap && vec.cap == new_cap && vec.size == DATA1_SIZE && vec.data == NULL,
@@ -65,7 +65,7 @@ int vec_reserve_test() {
     // Test 5: reserve some memory for the same vector (currently NULL data vector) (0 -> 8)
     start_test(5);
     new_cap = 8;
-    vec_reserve_unchecked(&vec, 8);
+    vec_reserve(&vec, 8);
 
     end_test(
         vec.len == 0 && vec.cap == new_cap && vec.size == DATA1_SIZE && vec.data != NULL,
@@ -74,12 +74,12 @@ int vec_reserve_test() {
 
     // Test 6: error handling
     start_test(6);
-    VEC_RESERVE_RESULT error1 = vec_reserve(NULL, 13);
-    VEC_RESERVE_RESULT ok = vec_reserve(&vec, 13);
+    VEC_RESERVE_RESULT error1 = vec_reserve_s(NULL, 13);
+    VEC_RESERVE_RESULT ok = vec_reserve_s(&vec, 13);
 
     end_test(
         error1 == VRR_INVALID_VEC && ok == VRR_OK,
-        vec_drop_single(&vec)
+        vec_drop_single_s(&vec)
     );
 
     return result;

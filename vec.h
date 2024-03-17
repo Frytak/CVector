@@ -236,36 +236,37 @@ void _vec_insertion_sort(Vector *vec);
 
 size_t _vec_get_p2_cap(size_t amount);
 
-void vec_drop_single_unchecked(Vector *vec);
-void _vec_drop_unchecked(Vector *vec, ...);
-#define vec_drop_unchecked(...) _vec_drop_unchecked(__VA_ARGS__, VEC_VARIADIC_END)
-VEC_DROP_RESULT vec_drop_single(Vector *vec);
-VEC_DROP_RESULT _vec_drop(size_t *err_index, Vector *vec, ...);
-#define vec_drop(err_index, ...) _vec_drop(err_index, __VA_ARGS__, VEC_VARIADIC_END)
+void vec_drop_single(Vector *vec);
+void _vec_drop(Vector *vec, ...);
+#define vec_drop(...) _vec_drop(__VA_ARGS__, VEC_VARIADIC_END)
+VEC_DROP_RESULT vec_drop_single_s(Vector *vec);
+VEC_DROP_RESULT _vec_drop_s(Vector *vec, ...);
+#define vec_drop_s(...) _vec_drop_s(__VA_ARGS__, VEC_VARIADIC_END)
 
-void vec_reserve_unchecked(Vector *vec, size_t cap);
-VEC_RESERVE_RESULT vec_reserve(Vector *vec, size_t cap);
+void vec_reserve(Vector *vec, size_t cap);
+VEC_RESERVE_RESULT vec_reserve_s(Vector *vec, size_t cap);
 
 VEC_INIT_RESULT vec_init(Vector *vec, size_t size, void *data, size_t amount);
 Vector vec_new(size_t size, void *data, size_t amount);
 
-void *vec_get_unchecked(Vector *vec, size_t index);
 void *vec_get(Vector *vec, size_t index);
+void *vec_get_s(Vector *vec, size_t index);
 
-void vec_push_unchecked(Vector *vec, void *data);
-VEC_PUSH_RESULT vec_push(Vector *vec, void *data);
-void vec_push_multi_unchecked(Vector *vec, void *data, size_t amount);
-VEC_PUSH_RESULT vec_push_multi(Vector *vec, void *data, size_t amount);
+void vec_force_push(Vector *vec, void *data);
+void vec_push(Vector *vec, void *data);
+VEC_PUSH_RESULT vec_push_s(Vector *vec, void *data);
+void vec_push_multi(Vector *vec, void *data, size_t amount);
+VEC_PUSH_RESULT vec_push_multi_s(Vector *vec, void *data, size_t amount);
 
-void vec_insert_unchecked(Vector *vec, size_t index, void *data);
-VEC_INSERT_RESULT vec_insert(Vector *vec, size_t index, void *data);
+void vec_insert(Vector *vec, size_t index, void *data);
+VEC_INSERT_RESULT vec_insert_s(Vector *vec, size_t index, void *data);
 
-void vec_remove_unchecked(Vector *vec, size_t index);
-VEC_REMOVE_RESULT vec_remove(Vector *vec, size_t index);
-void vec_remove_range_unchecked(Vector *vec, size_t beg, size_t end);
-VEC_REMOVE_RANGE_RESULT vec_remove_range(Vector *vec, size_t beg, size_t end);
-void vec_remove_normalized_ranges_unchecked(Vector *vec, size_t *ranges, size_t amount);
-VEC_REMOVE_NORMALIZED_RANGES_RESULT vec_remove_normalized_ranges(Vector *vec, size_t *ranges, size_t amount);
+void vec_remove(Vector *vec, size_t index);
+VEC_REMOVE_RESULT vec_remove_s(Vector *vec, size_t index);
+void vec_remove_range(Vector *vec, size_t beg, size_t end);
+VEC_REMOVE_RANGE_RESULT vec_remove_range_s(Vector *vec, size_t beg, size_t end);
+void vec_remove_normalized_ranges(Vector *vec, size_t *ranges, size_t amount);
+VEC_REMOVE_NORMALIZED_RANGES_RESULT vec_remove_normalized_ranges_s(Vector *vec, size_t *ranges, size_t amount);
 
 VEC_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched);
 VEC_BINARY_SEARCH_COMP_RESULT vbsc_int(void *current_num, void *searched_num);
@@ -275,22 +276,25 @@ VEC_SEARCH_RESULT vec_find_first(Vector *vec, bool (*comp)(void *vec_item, void 
 bool vc_int(void *current_num, void *searched_num);
 bool vc_char(void *current_num, void *searched_num);
 
-bool vec_is_partial_eq_unchecked(Vector *vec1, Vector *vec2);
-bool vec_is_partial_eq(Vector *vec1, Vector *vec2, VEC_EQ_RESULT *result);
-bool vec_is_eq_unchecked(Vector *vec1, Vector *vec2);
-bool vec_is_eq(Vector *vec1, Vector *vec2, VEC_EQ_RESULT *result);
-bool vec_is_eq_deep_unchecked(Vector *vec1, Vector *vec2);
-bool vec_is_eq_deep(Vector *vec1, Vector *vec2, VEC_EQ_RESULT *result);
+bool vec_is_partial_eq(Vector *vec1, Vector *vec2);
+bool vec_is_partial_eq_s(Vector *vec1, Vector *vec2);
+bool vec_is_eq(Vector *vec1, Vector *vec2);
+bool vec_is_eq_s(Vector *vec1, Vector *vec2);
+bool vec_is_data_eq(Vector *vec1, Vector *vec2);
+bool vec_is_data_eq_s(Vector *vec1, Vector *vec2);
+bool vec_is_eq_deep(Vector *vec1, Vector *vec2);
+bool vec_is_eq_deep_s(Vector *vec1, Vector *vec2);
 
-Vector vec_copy_unchecked(Vector *vec);
-VEC_COPY_RESULT vec_copy(Vector *source_vec, Vector *destination_vec);
-
-void vec_swap_unchecked(Vector *vec, size_t first_index, size_t second_index);
+Vector vec_copy(Vector *vec);
+Vector vec_copy_s(Vector *vec);
+void vec_copy_into(Vector *source_vec, Vector *destination_vec);
+VEC_COPY_RESULT vec_copy_into_s(Vector *source_vec, Vector *destination_vec);
 
 void vec_swap(Vector *vec, size_t first_index, size_t second_index);
+void vec_swap_s(Vector *vec, size_t first_index, size_t second_index);
 
-void vec_read_ascii_line_unchecked(Vector *vec, FILE *file);
 void vec_read_ascii_line(Vector *vec, FILE *file);
+void vec_read_ascii_line_s(Vector *vec, FILE *file);
 errno_t vec_read_file(Vector *vec, char file_name[], size_t *bytes_written, bool minimize);
 
 #define VEC_CMD_ESC_BLACK "\033[30m"

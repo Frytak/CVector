@@ -25,13 +25,13 @@
     \
     expected = vec_new(sizeof(char), NULL, 8); \
     output = vec_new(sizeof(char), NULL, 8); \
-    vec_read_ascii_line(&expected, expected_file); \
-    vec_read_ascii_line(&output, output_file); \
+    vec_read_ascii_line_s(&expected, expected_file); \
+    vec_read_ascii_line_s(&output, output_file); \
     \
     fsetpos(output_file, &new_line_start); \
     end_test( \
-        vec_is_eq_deep(&output, &expected, NULL), \
-        vec_drop(NULL, &vec, &expected, &output) \
+        vec_is_eq_deep(&output, &expected), \
+        vec_drop_s(&vec, &expected, &output) \
     );
 
 int vec_fprint_test() {
@@ -72,13 +72,13 @@ int vec_fprint_test() {
 
     expected = vec_new(sizeof(char), NULL, 8);
     output = vec_new(sizeof(char), NULL, 8);
-    vec_read_ascii_line(&expected, expected_file);
-    vec_read_ascii_line(&output, output_file);
+    vec_read_ascii_line_s(&expected, expected_file);
+    vec_read_ascii_line_s(&output, output_file);
 
     fsetpos(output_file, &new_line_start);
     end_test(
-        vec_is_eq_deep(&output, &expected, NULL),
-        vec_drop(NULL, &vec, &expected, &output)
+        vec_is_eq_deep_s(&output, &expected),
+        vec_drop_s(&vec, &expected, &output)
     );
 
 
@@ -112,13 +112,13 @@ int vec_fprint_test() {
 
     expected = vec_new(sizeof(char), NULL, 8);
     output = vec_new(sizeof(char), NULL, 8);
-    vec_read_ascii_line(&expected, expected_file);
-    vec_read_ascii_line(&output, output_file);
+    vec_read_ascii_line_s(&expected, expected_file);
+    vec_read_ascii_line_s(&output, output_file);
 
     fsetpos(output_file, &new_line_start);
     end_test(
-        vec_is_eq_deep(&output, &expected, NULL),
-        vec_drop(NULL, &vec, &expected, &output)
+        vec_is_eq_deep_s(&output, &expected),
+        vec_drop_s(&vec, &expected, &output)
     );
 
     fclose(output_file);

@@ -140,7 +140,7 @@ int vec_binary_search_test() {
         && error5 == VSR_OUT_OF_BOUNDS && error6 == VSR_OUT_OF_BOUNDS
         && error7 == VSR_INVALID_BOUNDS && error8 == VSR_INVALID_BOUNDS
         && ok == VSR_OK && index == searched_index,
-        vec_drop_single(&vec)
+        vec_drop_single_s(&vec)
     );
 
     return result;

@@ -49,11 +49,7 @@ size_t _vec_get_cap(size_t cap, size_t amount) {
 ///
 /// WARNING! Remember to free nested pointers with allocated
 /// data or you'll leak memory!
-///
-/// While using this function you must ensure that:
-/// - `vec` is not NULL
-/// - `vec->data` is not NULL
-void vec_drop_single_unchecked(Vector *vec) {
+void vec_drop_single(Vector *vec) {
     free(vec->data);
     vec->data = NULL;
     vec->cap = 0;
@@ -65,23 +61,25 @@ void vec_drop_single_unchecked(Vector *vec) {
 ///
 /// WARNING! Remember to free nested pointers with allocated
 /// data or you'll leak memory!
-VEC_DROP_RESULT vec_drop_single(Vector *vec) {
+///
+/// This function ensures that:
+///     - `vec` is not NULL
+///     - `vec->data` is not NULL
+VEC_DROP_RESULT vec_drop_single_s(Vector *vec) {
     if (vec == NULL) { return VDR_INVALID_VEC; }
     if (vec->data == NULL) { return VDR_INVALID_VEC_DATA; }
-    vec_drop_single_unchecked(vec);
+    vec_drop_single(vec);
     return VDR_OK;
 }
 
-/// Drops the `data` pointer
+/// Drops the `data` pointer for each vector.
+/// The last vector must be `VEC_VARIADIC_END`, that's why this
+/// function shouldn't be used directly, use the provided `vec_drop` macro.
 ///
 /// WARNING! Remember to free nested pointers with allocated
 /// data or you'll leak memory!
-///
-/// While using this function you must ensure that each:
-/// - `vec` is not NULL
-/// - `vec->data` is not NULL
-void _vec_drop_unchecked(Vector *vec, ...) {
-    vec_drop_single_unchecked(vec);
+void _vec_drop(Vector *vec, ...) {
+    vec_drop_single(vec);
 
     va_list args;
     va_start(args, vec);
@@ -89,21 +87,28 @@ void _vec_drop_unchecked(Vector *vec, ...) {
     while (true) {
         Vector *arg = va_arg(args, Vector*);
         if (arg != NULL) {
-            if (vec_is_eq_unchecked(arg, (Vector*)&VEC_VARIADIC_END)) { break; }
+            if (vec_is_eq(arg, (Vector*)&VEC_VARIADIC_END)) { break; }
         }
-        vec_drop_single_unchecked(arg);
+        vec_drop_single(arg);
     }
 
     va_end(args);
 }
 
-/// Drops the `data` pointer
+/// Drops the `data` pointer for each vector.
+/// The last vector must be `VEC_VARIADIC_END`, that's why this
+/// function shouldn't be used directly, use the provided `vec_drop_s` macro.
+/// If one of the vectors is invalid the result won't be successfull
+/// but all valid vectors will be dropped.
 ///
 /// WARNING! Remember to free nested pointers with allocated
 /// data or you'll leak memory!
-VEC_DROP_RESULT _vec_drop(size_t *err_index, Vector *vec, ...) {
-    VEC_DROP_RESULT result = vec_drop_single(vec);
-    if (result != VDR_OK) { if (err_index != NULL) { *err_index = 0; }; return result; }
+///
+/// This function ensures that:
+///     - `vec` is not NULL
+///     - `vec->data` is not NULL
+VEC_DROP_RESULT _vec_drop_s(Vector *vec, ...) {
+    VEC_DROP_RESULT result = vec_drop_single_s(vec);
 
     va_list args;
     va_start(args, vec);
@@ -111,25 +116,24 @@ VEC_DROP_RESULT _vec_drop(size_t *err_index, Vector *vec, ...) {
     for (size_t i = 1; true; i++) {
         Vector *arg = va_arg(args, Vector*);
         if (arg != NULL) {
-            if (vec_is_eq_unchecked(arg, (Vector*)&VEC_VARIADIC_END)) { break; }
+            if (vec_is_eq(arg, (Vector*)&VEC_VARIADIC_END)) { break; }
         }
 
-        result = vec_drop_single(arg);
-        if (result != VDR_OK) { if (err_index != NULL) { *err_index = i; }; return result; }
+        VEC_DROP_RESULT result2 = vec_drop_single_s(arg);
+        if (result == VDR_OK) {
+            result = result2;
+        }
     }
 
     va_end(args);
-    return VDR_OK;
+    return result;
 }
 
 /// Reserves a specific capacity for the vector
 ///
 /// WARNING! Remember to free nested pointers with allocated
 /// data if you're setting the capacity to `0` or you'll leak memory!
-///
-/// You must ensure that:
-/// - `vec` is not NULL
-void vec_reserve_unchecked(Vector *vec, size_t cap) {
+void vec_reserve(Vector *vec, size_t cap) {
     vec->cap = cap;
 
     if (cap == 0) {
@@ -153,9 +157,12 @@ void vec_reserve_unchecked(Vector *vec, size_t cap) {
 ///
 /// WARNING! Remember to free nested pointers with allocated
 /// data or you'll leak memory!
-VEC_RESERVE_RESULT vec_reserve(Vector *vec, size_t cap) {
+///
+/// This function ensures that:
+///     - `vec` is not NULL
+VEC_RESERVE_RESULT vec_reserve_s(Vector *vec, size_t cap) {
     if (vec == NULL) { return VRR_INVALID_VEC; }
-    vec_reserve_unchecked(vec, cap);
+    vec_reserve(vec, cap);
 
     return VRR_OK;
 }
@@ -163,9 +170,9 @@ VEC_RESERVE_RESULT vec_reserve(Vector *vec, size_t cap) {
 // Doubles the capacity of a vector, or assigns `1` if the capacity is `0`.
 void _vec_reserve_double(Vector *vec) {
     if (vec->cap == 0) {
-        vec_reserve_unchecked(vec, 1);
+        vec_reserve(vec, 1);
     } else {
-        vec_reserve_unchecked(vec, vec->cap * 2);
+        vec_reserve(vec, vec->cap * 2);
     }
 }
 
@@ -208,99 +215,149 @@ Vector vec_new(size_t size, void *data, size_t amount) {
     return vec;
 }
 
-// TODO: make inline
 /// Returns a pointer to the element of the specified index
-///
-/// You must ensure that:
-/// - `vec` is not NULL
-/// - `vec->data` is not NULL
-/// - `index` is not out of bounds
-///
-/// It's also a good idea to ensure that:
-/// - `vec->size` is not 0
-void *vec_get_unchecked(Vector *vec, size_t index) {
+inline void *vec_get(Vector *vec, size_t index) {
     return vec->data + (vec->size * index);
 }
 
 /// Returns a pointer to the element of the specified index or NULL if:
-///
-/// - `vec` is NULL
-/// - `vec->data` is NULL
-/// - `vec->size` is 0
-/// - `index` is out of bounds
-void *vec_get(Vector *vec, size_t index) {
+///     - `vec` is NULL
+///     - `vec->data` is NULL
+///     - `vec->size` is 0
+///     - `index` is out of bounds
+void *vec_get_s(Vector *vec, size_t index) {
     if (vec == NULL) { return NULL; }
     if (vec->data == NULL) { return NULL; }
     if (vec->size == 0) { return NULL; }
     if (index > vec->len-1) { return NULL; }
-    return vec_get_unchecked(vec, index);
+    return vec_get(vec, index);
 }
 
-/// Pushes the provided data as the last element of the vector
-///
-/// You must ensure that:
-/// - `vec` is not NULL
-/// - `vec->data` is not NULL
-/// - `data` is not NULL
-void vec_push_unchecked(Vector *vec, void *data) {
-    ++vec->len;
+/// Pushes the provided data as the last element of the vector.
+/// Doesn't check if there is enough capacity and won't increase it.
+void vec_force_push(Vector *vec, void *data) {
+    vec->len++;
+    memcpy(vec_get(vec, vec->len - 1), data, vec->size);
+}
 
-    // Double the capacity if there is not enough space
+/// Pushes the provided data as the last element of the vector.
+/// Doesn't check if there is enough capacity and won't increase it.
+///
+/// This function ensures that:
+///     - `vec` is not NULL
+///     - `vec->data` is not NULL
+///     - `data` is not NULL
+void vec_force_push_s(Vector *vec, void *data) {
+    if (vec == NULL) { return; }
+    if (vec->data == NULL) { return; }
+    if (data == NULL) { return; }
+    vec_force_push(vec, data);
+}
+
+/// Pushes the provided data as the last element of the vector.
+void vec_push(Vector *vec, void *data) {
+    vec->len++;
+
     if (vec->len > vec->cap) {
         _vec_reserve_double(vec);
     }
 
-    // Copy the data
-    memcpy(vec_get_unchecked(vec, vec->len - 1), data, vec->size);
+    memcpy(vec_get(vec, vec->len - 1), data, vec->size);
 }
 
-/// Pushes the provided data as the last element of the vector
-VEC_PUSH_RESULT vec_push(Vector *vec, void *data) {
+/// Pushes the provided data as the last element of the vector.
+///
+/// This function ensures that:
+///     - `vec` is not NULL
+///     - `vec->data` is not NULL
+///     - `data` is not NULL
+VEC_PUSH_RESULT vec_push_s(Vector *vec, void *data) {
     if (vec == NULL) { return VPR_INVALID_VEC; }
     if (vec->data == NULL) { return VPR_INVALID_VEC_DATA; }
     if (data == NULL) { return VPR_INVALID_DATA; }
-    vec_push_unchecked(vec, data);
+    vec_push(vec, data);
 
     return VPR_OK;
 }
 
-/// Pushes the provided data as the last elements of the vector
-///
-/// You must ensure that:
-/// - `vec` is not NULL
-/// - `vec->data` is not NULL
-/// - `data` is not NULL
-void vec_push_multi_unchecked(Vector *vec, void *data, size_t amount) {
+/// Pushes the provided data as the last elements of the vector.
+void vec_push_multi(Vector *vec, void *data, size_t amount) {
     if (amount == 0) { return; }
     vec->len += amount;
 
     // Double the capacity until it fits
     if (vec->len > vec->cap) {
-        vec_reserve_unchecked(vec, _vec_get_cap(vec->cap, vec->len));
+        vec_reserve(vec, _vec_get_cap(vec->cap, vec->len));
     }
 
     // Copy the data
-    memcpy(vec_get_unchecked(vec, vec->len - amount), data, vec->size * amount);
+    memcpy(vec_get(vec, vec->len - amount), data, vec->size * amount);
 }
 
-/// Pushes the provided data as the last elements of the vector
-VEC_PUSH_RESULT vec_push_multi(Vector *vec, void *data, size_t amount) {
+/// Pushes the provided data as the last elements of the vector.
+///
+/// This function ensures that:
+///     - `vec` is not NULL
+///     - `vec->data` is not NULL
+///     - `data` is not NULL
+VEC_PUSH_RESULT vec_push_multi_s(Vector *vec, void *data, size_t amount) {
     if (vec == NULL) { return VPR_INVALID_VEC; }
     if (vec->data == NULL) { return VPR_INVALID_VEC_DATA; }
     if (data == NULL) { return VPR_INVALID_DATA; }
-    vec_push_multi_unchecked(vec, data, amount);
+    vec_push_multi(vec, data, amount);
 
     return 0;
 }
 
-void vec_remove_unchecked(Vector *vec, size_t index) {
+/// Inserts the provided data in the specified index of the vector.
+void vec_insert(Vector *vec, size_t index, void *data) {
+    // Copy the `data` as it might exist in the vector, we don't want to rewrite it while shifting
+    void *value_copy = malloc(vec->size);
+    memcpy(value_copy, data, vec->size);
+
+    vec->len++;
+    if (vec->cap < vec->len) {
+        _vec_reserve_double(vec);
+    }
+
+    memcpy(vec_get(vec, index+1), vec_get(vec, index), vec->size*(vec->len-index));
+    memcpy(vec_get(vec, index), value_copy, vec->size);
+    free(value_copy);
+}
+
+/// Inserts the provided data in the specified index of the vector.
+///
+/// This function ensures that:
+///     - `vec` is not NULL
+///     - `vec->data` is not NULL
+///     - `data` is not NULL
+VEC_INSERT_RESULT vec_insert_s(Vector *vec, size_t index, void *data) {
+    if (vec == NULL) { return VISR_INVALID_VEC; }
+    if (vec->data == NULL) { return VISR_INVALID_VEC_DATA; }
+    if (data == NULL) { return VISR_INVALID_DATA; }
+    if (index > vec->len) { return VISR_OUT_OF_BOUNDS; }
+
+    vec_insert(vec, index, data);
+    return VISR_OK;
+}
+
+/// Remove the element at the specified index of the vector and shift
+/// the rest of the data to leave no gaps.
+void vec_remove(Vector *vec, size_t index) {
     vec->len--;
     if (index == vec->len) { return; }
 
-    memcpy(vec_get_unchecked(vec, index), vec_get_unchecked(vec, index+1), vec->size * (vec->len+1 - index+1));
+    memcpy(vec_get(vec, index), vec_get(vec, index+1), vec->size * (vec->len+1 - index+1));
 }
 
-VEC_REMOVE_RESULT vec_remove(Vector *vec, size_t index) {
+/// Remove the element at the specified index of the vector and shift
+/// the rest of the data to leave no gaps.
+///
+/// This function ensures that:
+///     - `vec` is not NULL
+///     - `vec->data` is not NULL
+///     - `index` is in bounds
+VEC_REMOVE_RESULT vec_remove_s(Vector *vec, size_t index) {
     if (vec == NULL) { return VRER_INVALID_VEC; }
     if (vec->data == NULL) { return VRER_INVALID_VEC_DATA; }
     if (index >= vec->len) { return VRER_OUT_OF_BOUNDS; }
@@ -308,27 +365,48 @@ VEC_REMOVE_RESULT vec_remove(Vector *vec, size_t index) {
     vec->len--;
     if (index == vec->len) { return VRER_OK; }
 
-    memcpy(vec_get_unchecked(vec, index), vec_get_unchecked(vec, index+1), vec->size * (vec->len+1 - index+1));
+    memcpy(vec_get(vec, index), vec_get(vec, index+1), vec->size * (vec->len+1 - index+1));
     return VRER_OK;
 }
 
-void vec_remove_range_unchecked(Vector *vec, size_t beg, size_t end) {
+
+/// Remove the elements at the specified range of indexes of the vector and
+/// shift the rest of the data to leave no gaps.
+void vec_remove_range(Vector *vec, size_t beg, size_t end) {
     vec->len -= end - beg;
     if (end == vec->len) { return; }
-    memcpy(vec_get_unchecked(vec, beg), vec_get_unchecked(vec, end), vec->size * vec->len);
+    memcpy(vec_get(vec, beg), vec_get(vec, end), vec->size * vec->len);
 }
 
-VEC_REMOVE_RANGE_RESULT vec_remove_range(Vector *vec, size_t beg, size_t end) {
+/// Remove the elements at the specified range of indexes of the vector and
+/// shift the rest of the data to leave no gaps.
+///
+/// This function ensures that:
+///     - `vec` is not NULL
+///     - `vec->data` is not NULL
+///     - `beg` is in bounds
+///     - `end` is in bounds
+///     - `beg` is smaller than `end`
+VEC_REMOVE_RANGE_RESULT vec_remove_range_s(Vector *vec, size_t beg, size_t end) {
     if (vec == NULL) { return VRERR_INVALID_VEC; }
     if (vec->data == NULL) { return VRERR_INVALID_VEC_DATA; }
     if (end < beg) { return VRERR_INVALID_BOUNDS; }
     if (end > vec->len || beg >= vec->len) { return VRERR_OUT_OF_BOUNDS; }
 
-    vec_remove_range_unchecked(vec, beg, end);
+    vec_remove_range(vec, beg, end);
     return VRERR_OK;
 }
 
-void vec_remove_normalized_ranges_unchecked(Vector *vec, size_t *ranges, size_t amount) {
+/// Remove the elements at multiple specified ranges of indexes of the vector and
+/// shift the rest of the data to leave no gaps. This function assumes that all the
+/// ranges are normalized which means that:
+///     - beggining of a range is in bounds
+///     - end of a range is in bounds
+///     - beggining of a range is smaller than its' end
+///     - ranges are in order
+///     - ranges are not overlaping
+///     - each range has at least one index of space left in between, otherwise they should be one range
+void vec_remove_normalized_ranges(Vector *vec, size_t *ranges, size_t amount) {
     if (amount == 0) { return; }
     size_t initial_len = vec->len;
     size_t current_data_end = ranges[0];
@@ -339,7 +417,7 @@ void vec_remove_normalized_ranges_unchecked(Vector *vec, size_t *ranges, size_t 
         size_t next_beg = ranges[i];
         vec->len -= end - beg;
         //printf("MHM: %lld o: %lld", end-beg, current_data_end);
-        memcpy(vec_get_unchecked(vec, current_data_end), vec_get_unchecked(vec, end), vec->size * (next_beg - end));
+        memcpy(vec_get(vec, current_data_end), vec_get(vec, end), vec->size * (next_beg - end));
         current_data_end += next_beg - end;
     }
 
@@ -349,10 +427,25 @@ void vec_remove_normalized_ranges_unchecked(Vector *vec, size_t *ranges, size_t 
     //printf("```%lld %lld```", end, initial_len);
     if (end == initial_len) { return; }
     //printf("MHM: %lld from: %lld %lld %lld", end-beg, end, beg, current_data_end);
-    memcpy(vec_get_unchecked(vec, current_data_end), vec_get_unchecked(vec, end), vec->size * (initial_len - end));
+    memcpy(vec_get(vec, current_data_end), vec_get(vec, end), vec->size * (initial_len - end));
 }
 
-VEC_REMOVE_NORMALIZED_RANGES_RESULT vec_remove_normalized_ranges(Vector *vec, size_t *ranges, size_t amount) {
+/// Remove the elements at multiple specified ranges of indexes of the vector and
+/// shift the rest of the data to leave no gaps. This function assumes that all the
+/// ranges are normalized which means that:
+///     - beggining of a range is in bounds
+///     - end of a range is in bounds
+///     - beggining of a range is smaller than its' end
+///     - ranges are in order
+///     - ranges are not overlaping
+///     - each range has at least one index of space left in between, otherwise they should be one range
+///
+/// This function ensures that:
+///     - `vec` is not NULL
+///     - `vec->data` is not NULL
+///     - `ranges` is not NULL
+///     - ranges are normalized
+VEC_REMOVE_NORMALIZED_RANGES_RESULT vec_remove_normalized_ranges_s(Vector *vec, size_t *ranges, size_t amount) {
     if (vec == NULL) { return VRENRR_INVALID_VEC; }
     if (vec->data == NULL) { return VRENRR_INVALID_VEC_DATA; }
     if (ranges == NULL) { return VRENRR_INVALID_RANGES; }
@@ -364,7 +457,7 @@ VEC_REMOVE_NORMALIZED_RANGES_RESULT vec_remove_normalized_ranges(Vector *vec, si
         highest_seen = ranges[i];
     }
 
-    vec_remove_normalized_ranges_unchecked(vec, ranges, amount);
+    vec_remove_normalized_ranges(vec, ranges, amount);
     return VRENRR_OK;
 }
 
@@ -415,37 +508,6 @@ VEC_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (
     }
 
     return VSR_NOT_FOUND;
-}
-
-// TODO: Document
-void vec_insert_unchecked(Vector *vec, size_t index, void *data) {
-    // Copy the `data` as it might exist in the vector, we don't want to rewrite it while shifting
-    void *value_copy = malloc(vec->size);
-    memcpy(value_copy, data, vec->size);
-
-    vec->len++;
-    if (vec->cap < vec->len) {
-        _vec_reserve_double(vec);
-    }
-
-    // If we're not inserting at the end of the vector we need to shift the vectors' data
-    if (!(index == vec->len-1)) {
-        memcpy(vec_get_unchecked(vec, index+1), vec_get_unchecked(vec, index), vec->size*(vec->len-index));
-    }
-
-    memcpy(vec_get_unchecked(vec, index), value_copy, vec->size);
-    free(value_copy);
-}
-
-// TODO: Document
-VEC_INSERT_RESULT vec_insert(Vector *vec, size_t index, void *data) {
-    if (vec == NULL) { return VISR_INVALID_VEC; }
-    if (vec->data == NULL) { return VISR_INVALID_VEC_DATA; }
-    if (data == NULL) { return VISR_INVALID_DATA; }
-    if (index > vec->len) { return VISR_OUT_OF_BOUNDS; }
-
-    vec_insert_unchecked(vec, index, data);
-    return VISR_OK;
 }
 
 //void _vec_insertion_sort(Vector *vec) {
@@ -505,7 +567,7 @@ VEC_SEARCH_RESULT vec_find_first(Vector *vec, bool (*comp)(void *vec_item, void 
     if (beg >= end) { return VSR_INVALID_BOUNDS; }
 
     for (size_t x = beg; x < end; x++) {
-        if (comp(vec_get_unchecked(vec, x), searched)) {
+        if (comp(vec_get(vec, x), searched)) {
             if (index != NULL) { *index = x; }
             return VSR_OK;
         }
@@ -514,8 +576,8 @@ VEC_SEARCH_RESULT vec_find_first(Vector *vec, bool (*comp)(void *vec_item, void 
     return VSR_NOT_FOUND;
 }
 
-// Checks if `len`, `cap` and `size` of a vector are equal
-bool vec_is_partial_eq_unchecked(Vector *vec1, Vector *vec2) {
+/// Checks if `len`, `cap` and `size` of a vector are equal.
+bool vec_is_partial_eq(Vector *vec1, Vector *vec2) {
     return (
         vec1->cap == vec2->cap
         && vec1->len == vec2->len
@@ -523,100 +585,179 @@ bool vec_is_partial_eq_unchecked(Vector *vec1, Vector *vec2) {
     );
 }
 
-bool vec_is_partial_eq(Vector *vec1, Vector *vec2, VEC_EQ_RESULT *result) {
-    if (vec1 == NULL) { if (result != NULL) { *result = VER_INVALID_SOURCE; }; return false; }
-    if (vec2 == NULL) { if (result != NULL) { *result = VER_INVALID_DESTINATION; }; return false; }
-    *result = VER_OK;
-    return vec_is_partial_eq_unchecked(vec1, vec2);
+/// Checks if `len`, `cap` and `size` of a vector are equal.
+///
+/// This function ensures that:
+///     - `vec1` is not NULL
+///     - `vec2` is not NULL
+///
+/// If they are, `false` will be returned.
+bool vec_is_partial_eq_s(Vector *vec1, Vector *vec2) {
+    if (vec1 == NULL || vec2 == NULL) { return false; }
+    return vec_is_partial_eq(vec1, vec2);
 }
 
-// Checks if `len`, `cap`, `size` and `data` pointer of a vector are equal
-bool vec_is_eq_unchecked(Vector *vec1, Vector *vec2) {
+/// Checks if `len`, `cap`, `size` and `data` pointer of a vector are equal.
+bool vec_is_eq(Vector *vec1, Vector *vec2) {
     return (
-        vec_is_partial_eq_unchecked(vec1, vec2)
+        vec_is_partial_eq(vec1, vec2)
         && vec1->data == vec2->data
     );
 }
 
-bool vec_is_eq(Vector *vec1, Vector *vec2, VEC_EQ_RESULT *result) {
-    if (vec1 == NULL) { if (result != NULL) { *result = VER_INVALID_SOURCE; }; return false; }
-    if (vec2 == NULL) { if (result != NULL) { *result = VER_INVALID_DESTINATION; }; return false; }
-    return vec_is_partial_eq_unchecked(vec1, vec2);
+/// Checks if `len`, `cap`, `size` and `data` pointer of a vector are equal.
+///
+/// This function ensures that:
+///     - `vec1` is not NULL
+///     - `vec2` is not NULL
+///
+/// If they are, `false` will be returned.
+bool vec_is_eq_s(Vector *vec1, Vector *vec2) {
+    if (vec1 == NULL || vec2 == NULL) { return false; }
+    return vec_is_partial_eq(vec1, vec2);
 }
 
-// Checks if `len`, `cap`, `size` and `data` the vectors are pointing to are equal.
-// The pointers might differ, only the similiarity of the data being held is checked.
-bool vec_is_eq_deep_unchecked(Vector *vec1, Vector *vec2) {
-    if (!vec_is_partial_eq_unchecked(vec1, vec2)) { return false; }
-
+/// Checks if the data inside of the vectors are equal.
+bool vec_is_data_eq(Vector *vec1, Vector *vec2) {
     return (memcmp(vec1->data, vec2->data, vec1->size * vec1->len) == 0);
 }
 
-bool vec_is_eq_deep(Vector *vec1, Vector *vec2, VEC_EQ_RESULT *result) {
-    if (vec1 == NULL) { if (result != NULL) { *result = VER_INVALID_SOURCE; }; return false; }
-    if (vec2 == NULL) { if (result != NULL) { *result = VER_INVALID_DESTINATION; }; return false; }
-    // TODO: Handle NULL `data` pointer
-    return vec_is_eq_deep_unchecked(vec1, vec2);
+/// Checks if the data inside of the vectors are equal.
+///
+/// This function ensures that:
+///     - `vec1` is not NULL
+///     - `vec2` is not NULL
+///
+/// If they are, `false` will be returned.
+bool vec_is_data_eq_s(Vector *vec1, Vector *vec2) {
+    if (vec1 == NULL || vec2 == NULL) { return false; }
+    return (memcmp(vec1->data, vec2->data, vec1->size * vec1->len) == 0);
 }
 
-// Copies the given 
-Vector vec_copy_unchecked(Vector *vec) {
+/// Checks if `len`, `cap`, `size` and `data` the vectors are pointing to are equal.
+/// The pointers might differ, only the similiarity of the data being held is checked.
+bool vec_is_eq_deep(Vector *vec1, Vector *vec2) {
+    if (!vec_is_partial_eq(vec1, vec2)) { return false; }
+    return vec_is_data_eq(vec1, vec2);
+}
+
+/// Checks if `len`, `cap`, `size` and `data` the vectors are pointing to are equal.
+/// The pointers might differ, only the similiarity of the data being held is checked.
+///
+/// This function ensures that:
+///     - `vec1` is not NULL
+///     - `vec1->data` is not NULL
+///     - `vec2` is not NULL
+///     - `vec2->data` is not NULL
+///
+/// If they are, `false` will be returned.
+bool vec_is_eq_deep_s(Vector *vec1, Vector *vec2) {
+    if (vec1 == NULL || vec2 == NULL) { return false; }
+    if (vec1->data == NULL || vec2->data == NULL) { return false; }
+    return vec_is_eq_deep(vec1, vec2);
+}
+
+/// Makes a copy of the provided vector copying all the data it holds.
+Vector vec_copy(Vector *vec) {
     Vector copy;
 
     vec_init(&copy, vec->size, vec->data, vec->len);
-    vec_reserve_unchecked(&copy, vec->cap);
+    vec_reserve(&copy, vec->cap);
 
     return copy;
 }
 
-VEC_COPY_RESULT vec_copy(Vector *source_vec, Vector *destination_vec) {
+/// Makes a copy of the provided vector copying all the data it holds.
+///
+/// This function ensures that:
+///     - `vec` is not NULL
+///
+/// If it is, `VEC_VARIADIC_END` will be returned.
+Vector vec_copy_s(Vector *vec) {
+    if (vec == NULL) { return VEC_VARIADIC_END; }
+    return vec_copy(vec);
+}
+
+/// Makes a copy of the source vector into the destination vector copying all the data it holds.
+void vec_copy_into(Vector *source_vec, Vector *destination_vec) {
+    *destination_vec = vec_copy(source_vec);
+}
+
+/// Makes a copy of the source vector into the destination vector copying all the data it holds.
+///
+/// This function ensures that:
+///     - `source_vec` is not NULL
+///     - `destination_vec` is not NULL
+VEC_COPY_RESULT vec_copy_into_s(Vector *source_vec, Vector *destination_vec) {
     if (source_vec == NULL) { return VCR_INVALID_SOURCE; }
     if (destination_vec == NULL) { return VCR_INVALID_DESTINATION; }
 
-    *destination_vec = vec_copy_unchecked(source_vec);
+    vec_copy_into(source_vec, destination_vec);
 
-    if (!vec_is_partial_eq_unchecked(source_vec, destination_vec)) { return VCR_UNKNOWN; }
     return VCR_OK;
 }
 
-void vec_swap_unchecked(Vector *vec, size_t first_index, size_t second_index) {
+/// Swaps the data of two specified indices in the vector.
+void vec_swap(Vector *vec, size_t first_index, size_t second_index) {
     // Make a copy of the value at the first index
     void *first_element_copy = malloc(vec->size);
-    memcpy(first_element_copy, vec_get(vec, first_index), vec->size);
+    memcpy(first_element_copy, vec_get_s(vec, first_index), vec->size);
 
     // Swap the elemnts
-    memcpy(vec_get(vec, first_index), vec_get(vec, second_index), vec->size);
-    memcpy(vec_get(vec, second_index), first_element_copy, vec->size);
+    memcpy(vec_get_s(vec, first_index), vec_get_s(vec, second_index), vec->size);
+    memcpy(vec_get_s(vec, second_index), first_element_copy, vec->size);
     free(first_element_copy);
 }
 
-// TODO: Implement errors
-void vec_swap(Vector *vec, size_t first_index, size_t second_index) {
-    if (first_index < 0 || first_index >= vec->len || second_index < 0 || second_index >= vec->len) { return; }
-    vec_swap_unchecked(vec, first_index, second_index);
+/// Swaps the data of two specified indices in the vector.
+///
+/// This function ensures that:
+///     - `vec` is not NULL
+///     - `vec->data` is not NULL
+///     - `first_index` is in bounds
+///     - `second_index` is in bounds
+void vec_swap_s(Vector *vec, size_t first_index, size_t second_index) {
+    if (
+        vec == NULL
+        || vec->data == NULL
+        || first_index >= vec->len
+        || second_index >= vec->len
+    ) { return; }
+    vec_swap(vec, first_index, second_index);
 }
 
-void vec_read_ascii_line_unchecked(Vector *vec, FILE *file) {
+/// Reads a line from a specified file (using `fgetc`) pushing each character into the array until `'\n'`.
+/// Doesn't push `'\n'` or any additional characters such as `'\0'`.
+/// This function doesn't handle files that are already at the `EOF`. Use `vec_read_ascii_line_s` for that.
+void vec_read_ascii_line(Vector *vec, FILE *file) {
     int character = EOF;
-    char terminator = '\0';
 
     do {
         character = fgetc(file);
-        if (character == '\n') { vec_push_unchecked(vec, &terminator); return; }
-        vec_push_unchecked(vec, &character);
+        if (character == '\n') { return; }
+        vec_push(vec, &character);
     } while (character != EOF);
 }
 
-// TODO: Errors
-void vec_read_ascii_line(Vector *vec, FILE *file) {
+// TODO: Errors.
+/// Reads a line from a specified file (using `fgetc`) pushing each character into the array until `'\n'`.
+/// Doesn't push `'\n'` or any additional characters such as `'\0'`.
+///
+/// This function ensures that:
+///     - `vec` is not NULL
+///     - `vec->data` is not NULL
+///     - `file` is not NULL
+///     - `file` doesn't have EOF indicator set
+void vec_read_ascii_line_s(Vector *vec, FILE *file) {
     if (vec == NULL) { return; }
     if (vec->data == NULL) { return; }
     if (file == NULL) { return; }
     if (feof(file) != 0) { return; }
 
-    vec_read_ascii_line_unchecked(vec, file);
+    vec_read_ascii_line(vec, file);
 }
 
+// TODO: Remake this function.
 int vec_read_file(Vector *vec, char file_name[], size_t *bytes_written, bool minimize) {
     FILE *file;
     int err = 0;
@@ -635,7 +776,7 @@ int vec_read_file(Vector *vec, char file_name[], size_t *bytes_written, bool min
             char* fgets_ret;
 
             size_t shift = line.cap - 1;
-            vec_reserve_unchecked(&line, ((line.cap - 2) * 2) + 2);
+            vec_reserve(&line, ((line.cap - 2) * 2) + 2);
             size_t cap = shift;
             if (i == 0) { shift = 0; cap = line.cap; }
             fgets_ret = fgets(line.data + shift * line.size, cap, file);
@@ -657,7 +798,7 @@ int vec_read_file(Vector *vec, char file_name[], size_t *bytes_written, bool min
 
             // TODO: Full error handling
             switch (vec_binary_search(&line, vbsc_rf, line.cap/2, line.cap, &index, NULL)) {
-                case VSR_OK: { vec_reserve_unchecked(&line, line.cap - 2); goto line_read; }
+                case VSR_OK: { vec_reserve(&line, line.cap - 2); goto line_read; }
                 case VSR_NOT_FOUND: { break; }
                 case VSR_INVALID_BOUNDS: { printf("ERROR: Invalid input."); break; }
                 case VSR_OUT_OF_BOUNDS: { printf("ERROR: Out of bounds."); break; }
@@ -667,7 +808,7 @@ int vec_read_file(Vector *vec, char file_name[], size_t *bytes_written, bool min
 
     line_read:
         line.len = index;
-        vec_push(vec, &line);
+        vec_push_s(vec, &line);
     }
 
 file_read:
@@ -882,10 +1023,10 @@ void vec_fprint(FILE *file, Vector *vec, VEC_PRINT_TYPE type) {
 
     fprintf(file, "[");
     for (int i = 0; i < vec->len - 1; i++) {
-        print_func(file, vec_get(vec, i));
+        print_func(file, vec_get_s(vec, i));
         fprintf(file, ", ");
     }
-    print_func(file, vec_get(vec, vec->len-1));
+    print_func(file, vec_get_s(vec, vec->len-1));
     fprintf(file, "]");
 }
 
