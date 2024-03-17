@@ -9,7 +9,9 @@ typedef struct {
     bool PRINT_WITH_COLORS;
     bool FPRINT_WITH_COLORS;
     uint8_t TIMSORT_RUN_SIZE;
-} Config;
+} VecConfig;
+
+extern VecConfig VEC_CONFIG;
 
 bool vec_cg_print_colors();
 void vec_cs_print_colors(bool set);
@@ -291,10 +293,30 @@ void vec_read_ascii_line_unchecked(Vector *vec, FILE *file);
 void vec_read_ascii_line(Vector *vec, FILE *file);
 errno_t vec_read_file(Vector *vec, char file_name[], size_t *bytes_written, bool minimize);
 
+#define VEC_CMD_ESC_BLACK "\033[30m"
+#define VEC_CMD_ESC_BRIGHT_BLACK "\033[90m"
+
 #define VEC_CMD_ESC_RED "\033[31m"
+#define VEC_CMD_ESC_BRIGHT_RED "\033[91m"
+
+#define VEC_CMD_ESC_GREEN "\033[32m"
+#define VEC_CMD_ESC_BRIGHT_GREEN "\033[92m"
+
 #define VEC_CMD_ESC_YELLOW "\033[33m"
 #define VEC_CMD_ESC_BRIGHT_YELLOW "\033[93m"
-#define VEC_CMD_ESC_BRIGHT_GREEN "\033[92m"
+
+#define VEC_CMD_ESC_BLUE "\033[34m"
+#define VEC_CMD_ESC_BRIGHT_BLUE "\033[94m"
+
+#define VEC_CMD_ESC_MAGENTA "\033[35m"
+#define VEC_CMD_ESC_BRIGHT_MAGENTA "\033[95m"
+
+#define VEC_CMD_ESC_CYAN "\033[36m"
+#define VEC_CMD_ESC_BRIGHT_CYAN "\033[96m"
+
+#define VEC_CMD_ESC_WHITE "\033[37m"
+#define VEC_CMD_ESC_BRIGHT_WHITE "\033[97m"
+
 #define VEC_CMD_ESC_RESET "\033[0m"
 
 void vec_info(Vector *vec);

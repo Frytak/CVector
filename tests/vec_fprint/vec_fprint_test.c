@@ -61,8 +61,7 @@ int vec_fprint_test() {
 
     // Vectors
     start_test(15);
-    vec = vec_new(DATA_VECTOR_DUMMY_SIZE, NULL, DATA_VECTOR_DUMMY_LEN);
-    vec_push_multi(&vec, (void*)DATA_VECTOR_DUMMY, DATA_VECTOR_DUMMY_LEN);
+    vec = vec_new(DATA_VECTOR_DUMMY_SIZE, (void*)DATA_VECTOR_DUMMY, DATA_VECTOR_DUMMY_LEN);
     fgetpos(output_file, &line_start);
 
     vec_fprint(output_file, &vec, VPT_VECTOR);
@@ -82,14 +81,45 @@ int vec_fprint_test() {
         vec_drop(NULL, &vec, &expected, &output)
     );
 
-    vec = vec_new(DATA_STRING_STATIC_SIZE, (void*)DATA_STRING_STATIC, DATA_STRING_STATIC_LEN);
-    vec_print(&vec, VPT_STRING_STATIC);
-    vec_drop_single(&vec);
-    printf("\n");
 
-    vec = vec_new(DATA_POINTER_SIZE, (void*)DATA_POINTER, DATA_POINTER_LEN);
-    vec_print(&vec, VPT_POINTER);
-    vec_drop_single(&vec);
+    // Repeat the tests with colored output
+    VEC_CONFIG.FPRINT_WITH_COLORS = true;
+    VEC_FPRINT_TEST(16, U8);
+    VEC_FPRINT_TEST(17, I8);
+    VEC_FPRINT_TEST(18, U16);
+    VEC_FPRINT_TEST(19, I16);
+    VEC_FPRINT_TEST(20, U32);
+    VEC_FPRINT_TEST(21, I32);
+    VEC_FPRINT_TEST(22, U64);
+    VEC_FPRINT_TEST(23, I64);
+    VEC_FPRINT_TEST(24, FLOAT);
+    VEC_FPRINT_TEST(25, DOUBLE);
+    VEC_FPRINT_TEST(26, CHAR);
+    VEC_FPRINT_TEST(27, STRING);
+    VEC_FPRINT_TEST(28, STRING_STATIC);
+    VEC_FPRINT_TEST(29, POINTER);
+
+    // Vectors
+    start_test(30);
+    vec = vec_new(DATA_VECTOR_DUMMY_SIZE, (void*)DATA_VECTOR_DUMMY, DATA_VECTOR_DUMMY_LEN);
+    fgetpos(output_file, &line_start);
+
+    vec_fprint(output_file, &vec, VPT_VECTOR);
+    fprintf(output_file, "\n");
+
+    fgetpos(output_file, &new_line_start);
+    fsetpos(output_file, &line_start);
+
+    expected = vec_new(sizeof(char), NULL, 8);
+    output = vec_new(sizeof(char), NULL, 8);
+    vec_read_ascii_line(&expected, expected_file);
+    vec_read_ascii_line(&output, output_file);
+
+    fsetpos(output_file, &new_line_start);
+    end_test(
+        vec_is_eq_deep(&output, &expected, NULL),
+        vec_drop(NULL, &vec, &expected, &output)
+    );
 
     fclose(output_file);
     fclose(expected_file);
