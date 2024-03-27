@@ -54,17 +54,17 @@ int vec_remove_test() {
     // Test 4: error handling
     start_test(4);
     vec = vec_new(DATA2_SIZE, (void*)DATA2, DATA2_LEN);
-    VEC_REMOVE_RESULT error1 = vec_remove_s(NULL, 0);
-    VEC_REMOVE_RESULT error2 = vec_remove_s(&vec, vec.len+4);
-    VEC_REMOVE_RESULT ok = vec_remove_s(&vec, 2);
+    VEC_RESULT error1 = vec_remove_s(NULL, 0);
+    VEC_RESULT error2 = vec_remove_s(&vec, vec.len+4);
+    VEC_RESULT ok = vec_remove_s(&vec, 2);
     drop_test_vecs(vec_drop_single_s(&vec));
-    VEC_REMOVE_RESULT error3 = vec_remove_s(&vec, 0);
+    VEC_RESULT error3 = vec_remove_s(&vec, 0);
 
     end_test(
-        error1 == VRER_INVALID_VEC
-        && error2 == VRER_OUT_OF_BOUNDS
-        && error3 == VRER_INVALID_VEC_DATA
-        && ok == VRER_OK,
+        error1 == VECR_NULL_VEC
+        && error2 == VECR_OUT_OF_BOUNDS
+        && error3 == VECR_NULL_VEC_DATA
+        && ok == VECR_OK,
         NULL
     );
 

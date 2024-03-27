@@ -74,11 +74,11 @@ int vec_reserve_test() {
 
     // Test 6: error handling
     start_test(6);
-    VEC_RESERVE_RESULT error1 = vec_reserve_s(NULL, 13);
-    VEC_RESERVE_RESULT ok = vec_reserve_s(&vec, 13);
+    VEC_RESULT error1 = vec_reserve_s(NULL, 13);
+    VEC_RESULT ok = vec_reserve_s(&vec, 13);
 
     end_test(
-        error1 == VRR_INVALID_VEC && ok == VRR_OK,
+        error1 == VECR_NULL_VEC && ok == VECR_OK,
         vec_drop_single_s(&vec)
     );
 

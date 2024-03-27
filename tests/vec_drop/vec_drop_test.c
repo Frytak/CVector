@@ -46,12 +46,12 @@ int vec_drop_test() {
     start_test(3);
     vec1 = vec_new(DATA1_SIZE, (void*)DATA1, DATA1_LEN);
 
-    VEC_DROP_RESULT error1 = vec_drop_single_s(NULL);
-    VEC_DROP_RESULT ok1 = vec_drop_single_s(&vec1);
-    VEC_DROP_RESULT error2 = vec_drop_single_s(&vec1);
+    VEC_RESULT error1 = vec_drop_single_s(NULL);
+    VEC_RESULT ok1 = vec_drop_single_s(&vec1);
+    VEC_RESULT error2 = vec_drop_single_s(&vec1);
     end_test(
         vec1.len == 0 && vec1.cap == 0 && vec1.size == 0 && vec1.data == NULL
-        && error1 == VDR_INVALID_VEC && error2 == VDR_INVALID_VEC_DATA && ok1 == VDR_OK,
+        && error1 == VECR_NULL_VEC && error2 == VECR_NULL_VEC_DATA && ok1 == VECR_OK,
         NULL
     );
 
@@ -61,24 +61,24 @@ int vec_drop_test() {
     vec2 = vec_new(DATA2_SIZE, (void*)DATA2, DATA2_LEN);
     vec3 = vec_new(DATA5_SIZE, (void*)DATA5, DATA5_LEN);
 
-    VEC_DROP_RESULT error3 = vec_drop_s(&vec1, NULL, &vec3);
-    VEC_DROP_RESULT error4 = vec_drop_s(&vec1, &vec2, NULL);
-    VEC_DROP_RESULT error5 = vec_drop_s(&vec1, &vec2, &vec3);
+    VEC_RESULT error3 = vec_drop_s(&vec1, NULL, &vec3);
+    VEC_RESULT error4 = vec_drop_s(&vec1, &vec2, NULL);
+    VEC_RESULT error5 = vec_drop_s(&vec1, &vec2, &vec3);
 
     vec1 = vec_new(DATA1_SIZE, (void*)DATA1, DATA1_LEN);
     vec2 = vec_new(DATA2_SIZE, (void*)DATA2, DATA2_LEN);
     vec3 = vec_new(DATA5_SIZE, (void*)DATA5, DATA5_LEN);
 
-    VEC_DROP_RESULT ok2 = vec_drop_s(&vec1, &vec2, &vec3);
+    VEC_RESULT ok2 = vec_drop_s(&vec1, &vec2, &vec3);
 
     end_test(
         vec1.len == 0 && vec1.cap == 0 && vec1.size == 0 && vec1.data == NULL
         && vec2.len == 0 && vec2.cap == 0 && vec2.size == 0 && vec2.data == NULL
         && vec3.len == 0 && vec3.cap == 0 && vec3.size == 0 && vec3.data == NULL
-        && error3 == VDR_INVALID_VEC
-        && error4 == VDR_INVALID_VEC_DATA
-        && error5 == VDR_INVALID_VEC_DATA
-        && ok2 == VDR_OK,
+        && error3 == VECR_NULL_VEC
+        && error4 == VECR_NULL_VEC_DATA
+        && error5 == VECR_NULL_VEC_DATA
+        && ok2 == VECR_OK,
         NULL
     );
 

@@ -64,22 +64,22 @@ int vec_insert_test() {
     Vector uninitialized_vec = vec_new(0, NULL, 0);
     index = 7;
 
-    VEC_INSERT_RESULT error1 = vec_insert_s(NULL, index, &data);
-    VEC_INSERT_RESULT error2 = vec_insert_s(&uninitialized_vec, index, &data);
-    VEC_INSERT_RESULT error3 = vec_insert_s(&vec, index, NULL);
-    VEC_INSERT_RESULT error4 = vec_insert_s(&vec, vec.len+12, &data);
-    VEC_INSERT_RESULT ok = vec_insert_s(&vec, index, &data);
+    VEC_RESULT error1 = vec_insert_s(NULL, index, &data);
+    VEC_RESULT error2 = vec_insert_s(&uninitialized_vec, index, &data);
+    VEC_RESULT error3 = vec_insert_s(&vec, index, NULL);
+    VEC_RESULT error4 = vec_insert_s(&vec, vec.len+12, &data);
+    VEC_RESULT ok = vec_insert_s(&vec, index, &data);
 
     end_test(
         vec.size == DATA2_SIZE && vec.len == DATA2_LEN+1 && vec.cap == DATA2_CAP && vec.data != NULL
         && (memcmp(vec_get_s(&vec, 0), DATA2, vec.size*index) == 0)
         && (memcmp(vec_get_s(&vec, index+1), DATA2+index, vec.size*(DATA2_LEN-index)) == 0)
         && *(int*)vec_get_s(&vec, index) == data
-        && error1 == VISR_INVALID_VEC
-        && error2 == VISR_INVALID_VEC_DATA
-        && error3 == VISR_INVALID_DATA
-        && error4 == VISR_OUT_OF_BOUNDS
-        && ok == VISR_OK,
+        && error1 == VECR_NULL_VEC
+        && error2 == VECR_NULL_VEC_DATA
+        && error3 == VECR_NULL_DATA
+        && error4 == VECR_OUT_OF_BOUNDS
+        && ok == VECR_OK,
         vec_drop_single_s(&vec)
     );
 

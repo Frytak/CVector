@@ -89,19 +89,19 @@ int vec_remove_range_test() {
     start_test(7);
     vec = vec_new(DATA2_SIZE, (void*)DATA2, DATA2_LEN);
 
-    VEC_REMOVE_RANGE_RESULT error1 = vec_remove_range_s(NULL, 0, 3);
-    VEC_REMOVE_RANGE_RESULT error2 = vec_remove_range_s(&vec, 6, 3);
-    VEC_REMOVE_RANGE_RESULT error3 = vec_remove_range_s(&vec, vec.len+9, vec.len+18);
-    VEC_REMOVE_RANGE_RESULT ok = vec_remove_range_s(&vec, 0, 3);
+    VEC_RESULT error1 = vec_remove_range_s(NULL, 0, 3);
+    VEC_RESULT error2 = vec_remove_range_s(&vec, 6, 3);
+    VEC_RESULT error3 = vec_remove_range_s(&vec, vec.len+9, vec.len+18);
+    VEC_RESULT ok = vec_remove_range_s(&vec, 0, 3);
     drop_test_vecs(vec_drop_single_s(&vec));
-    VEC_REMOVE_RANGE_RESULT error4 = vec_remove_range_s(&vec, 0, 3);
+    VEC_RESULT error4 = vec_remove_range_s(&vec, 0, 3);
 
     end_test(
-        error1 == VRERR_INVALID_VEC
-        && error2 == VRERR_INVALID_BOUNDS
-        && error3 == VRERR_OUT_OF_BOUNDS
-        && error4 == VRERR_INVALID_VEC_DATA
-        && ok == VRERR_OK,
+        error1 == VECR_NULL_VEC
+        && error2 == VECR_INVALID_BEG
+        && error3 == VECR_OUT_OF_BOUNDS
+        && error4 == VECR_NULL_VEC_DATA
+        && ok == VECR_OK,
         NULL
     );
 

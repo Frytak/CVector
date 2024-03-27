@@ -83,7 +83,7 @@ int vec_fprint_test() {
 
 
     // Repeat the tests with colored output
-    VEC_CONFIG.FPRINT_WITH_COLORS = true;
+    vec_cs_fprint_colors(true);
     VEC_FPRINT_TEST(16, U8);
     VEC_FPRINT_TEST(17, I8);
     VEC_FPRINT_TEST(18, U16);

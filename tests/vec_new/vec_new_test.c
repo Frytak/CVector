@@ -77,11 +77,11 @@ int vec_new_test() {
 
     // Test 7: error handling
     start_test(7);
-    VEC_INIT_RESULT error1 = vec_init(NULL, DATA1_SIZE, (void*)&DATA1, DATA1_LEN);
-    VEC_INIT_RESULT ok = vec_init(&vec, DATA1_SIZE, (void*)&DATA1, DATA1_LEN);
+    VEC_RESULT error1 = vec_init(NULL, DATA1_SIZE, (void*)&DATA1, DATA1_LEN);
+    VEC_RESULT ok = vec_init(&vec, DATA1_SIZE, (void*)&DATA1, DATA1_LEN);
 
     end_test(
-        error1 == VIR_INVALID_VEC && ok == VIR_OK,
+        error1 == VECR_NULL_VEC && ok == VECR_OK,
         vec_drop_single_s(&vec)
     );
 

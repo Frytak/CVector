@@ -116,19 +116,19 @@ int vec_remove_normalized_ranges_test() {
     size_t ranges7error2[] = { 1, 2, 6, 9, 3, 4, };
     size_t ranges7ok[] = { 1, 2, 3, 4, 6, 9, };
 
-    VEC_REMOVE_NORMALIZED_RANGES_RESULT error1 = vec_remove_normalized_ranges_s(NULL, ranges7ok, 3);
-    VEC_REMOVE_NORMALIZED_RANGES_RESULT error2 = vec_remove_normalized_ranges_s(&vec, NULL, 3);
-    VEC_REMOVE_NORMALIZED_RANGES_RESULT error3 = vec_remove_normalized_ranges_s(&vec, ranges7error1, 3);
-    VEC_REMOVE_NORMALIZED_RANGES_RESULT error4 = vec_remove_normalized_ranges_s(&vec, ranges7error2, 3);
-    VEC_REMOVE_NORMALIZED_RANGES_RESULT error5 = vec_remove_normalized_ranges_s(&uninitialized_vec, ranges7ok, 3);
-    VEC_REMOVE_NORMALIZED_RANGES_RESULT ok = vec_remove_normalized_ranges_s(&vec, ranges7ok, 3);
+    VEC_RESULT error1 = vec_remove_normalized_ranges_s(NULL, ranges7ok, 3);
+    VEC_RESULT error2 = vec_remove_normalized_ranges_s(&vec, NULL, 3);
+    VEC_RESULT error3 = vec_remove_normalized_ranges_s(&vec, ranges7error1, 3);
+    VEC_RESULT error4 = vec_remove_normalized_ranges_s(&vec, ranges7error2, 3);
+    VEC_RESULT error5 = vec_remove_normalized_ranges_s(&uninitialized_vec, ranges7ok, 3);
+    VEC_RESULT ok = vec_remove_normalized_ranges_s(&vec, ranges7ok, 3);
 
     end_test(
-        error1 == VRENRR_INVALID_VEC
-        && error2 == VRENRR_INVALID_RANGES
-        && error3 == VRENRR_NON_NORMALIZED_RANGES && error4 == VRENRR_NON_NORMALIZED_RANGES
-        && error5 == VRENRR_INVALID_VEC_DATA
-        && ok == VRENRR_OK
+        error1 == VECR_NULL_VEC
+        && error2 == VECR_NULL_RANGE
+        && error3 == VECR_INVALID_RANGE && error4 == VECR_INVALID_RANGE
+        && error5 == VECR_NULL_VEC_DATA
+        && ok == VECR_OK
         && (memcmp(vec_get_s(&vec, 0), (void*)DATA2, vec.size) == 0)
         && (memcmp(vec_get_s(&vec, 1), ((void*)DATA2)+(vec.size*2), vec.size) == 0)
         && (memcmp(vec_get_s(&vec, 2), ((void*)DATA2)+(vec.size*4), vec.size*2) == 0),

@@ -40,14 +40,14 @@ int vec_push_test() {
     // Test 3: error handling
     start_test(3);
     vec = vec_new(DATA1_SIZE, (void*)&DATA1, DATA1_LEN);
-    VEC_PUSH_RESULT error1 = vec_push_s(NULL, (void*)&INSERT_DATA1[0]);
-    VEC_PUSH_RESULT error2 = vec_push_s(&vec, NULL);
-    VEC_PUSH_RESULT ok = vec_push_s(&vec, (void*)&INSERT_DATA1[0]);
+    VEC_RESULT error1 = vec_push_s(NULL, (void*)&INSERT_DATA1[0]);
+    VEC_RESULT error2 = vec_push_s(&vec, NULL);
+    VEC_RESULT ok = vec_push_s(&vec, (void*)&INSERT_DATA1[0]);
     drop_test_vecs(vec_drop_single_s(&vec));
-    VEC_PUSH_RESULT error3 = vec_push_s(&vec, (void*)&INSERT_DATA1[0]);
+    VEC_RESULT error3 = vec_push_s(&vec, (void*)&INSERT_DATA1[0]);
 
     end_test(
-        error1 == VPR_INVALID_VEC && error2 == VPR_INVALID_DATA && ok == VPR_OK && error3 == VPR_INVALID_VEC_DATA,
+        error1 == VECR_NULL_VEC && error2 == VECR_NULL_DATA && ok == VECR_OK && error3 == VECR_NULL_VEC_DATA,
         NULL
     );
 

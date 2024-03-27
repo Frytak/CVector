@@ -16,7 +16,7 @@ int vec_find_first_test() {
     int result = 0;
     size_t index = -1;
     size_t searched_index = -1;
-    VEC_SEARCH_RESULT sresult = -1;
+    VEC_RESULT sresult = -1;
     Vector vec = vec_new(DATA2_SIZE, (void*)DATA2, DATA2_LEN);
 
     // Test 1: exists in vec
@@ -25,7 +25,7 @@ int vec_find_first_test() {
     sresult = vec_find_first(&vec, vc_int, 0, DATA2_LEN, &index, (void*)&DATA2[searched_index]);
 
     end_test(
-        index == searched_index && sresult == VSR_OK,
+        index == searched_index && sresult == VECR_OK,
         NULL
     );
 
@@ -35,7 +35,7 @@ int vec_find_first_test() {
     sresult = vec_find_first(&vec, vc_int, 0, DATA2_LEN, &index, (void*)&value);
 
     end_test(
-        sresult == VSR_NOT_FOUND,
+        sresult == VECR_NOT_FOUND,
         NULL
     );
 
@@ -45,7 +45,7 @@ int vec_find_first_test() {
     sresult = vec_find_first(&vec, vc_int, 0, DATA2_LEN, &index, (void*)&DATA2[searched_index]);
 
     end_test(
-        index == searched_index && sresult == VSR_OK,
+        index == searched_index && sresult == VECR_OK,
         NULL
     );
 
@@ -55,7 +55,7 @@ int vec_find_first_test() {
     sresult = vec_find_first(&vec, vc_int, 0, DATA2_LEN, &index, (void*)&DATA2[searched_index]);
 
     end_test(
-        index == searched_index && sresult == VSR_OK,
+        index == searched_index && sresult == VECR_OK,
         NULL
     );
 
@@ -65,7 +65,7 @@ int vec_find_first_test() {
     sresult = vec_find_first(&vec, vc_int, 2, DATA2_LEN-2, &index, (void*)&DATA2[searched_index]);
 
     end_test(
-        index == searched_index && sresult == VSR_OK,
+        index == searched_index && sresult == VECR_OK,
         NULL
     );
 
@@ -75,7 +75,7 @@ int vec_find_first_test() {
     sresult = vec_find_first(&vec, vc_int, 2, 6, &index, (void*)&DATA2[searched_index]);
 
     end_test(
-        sresult == VSR_NOT_FOUND,
+        sresult == VECR_NOT_FOUND,
         NULL
     );
 
@@ -85,7 +85,7 @@ int vec_find_first_test() {
     sresult = vec_find_first(&vec, vc_int, 2, 6, &index, (void*)&DATA2[searched_index]);
 
     end_test(
-        index == searched_index && sresult == VSR_OK,
+        index == searched_index && sresult == VECR_OK,
         NULL
     );
 
@@ -95,7 +95,7 @@ int vec_find_first_test() {
     sresult = vec_find_first(&vec, vc_int, 2, 6, &index, (void*)&DATA2[searched_index]);
 
     end_test(
-        index == searched_index && sresult == VSR_OK,
+        index == searched_index && sresult == VECR_OK,
         NULL
     );
 
@@ -105,7 +105,7 @@ int vec_find_first_test() {
     sresult = vec_find_first(&vec, vc_int, vec.len-1, vec.len, &index, (void*)&DATA2[searched_index]);
 
     end_test(
-        index == searched_index && sresult == VSR_OK,
+        index == searched_index && sresult == VECR_OK,
         NULL
     );
 
@@ -115,31 +115,31 @@ int vec_find_first_test() {
     sresult = vec_find_first(&vec, vc_int, 0, 1, &index, (void*)&DATA2[searched_index]);
 
     end_test(
-        index == searched_index && sresult == VSR_OK,
+        index == searched_index && sresult == VECR_OK,
         NULL
     );
 
     // Test 11: error handling
     start_test(11);
     searched_index = 1;
-    VEC_SEARCH_RESULT error1 = vec_find_first(&vec, vc_int, 2, vec.len, &index, (void*)&DATA2[searched_index]);
-    VEC_SEARCH_RESULT error2 = vec_find_first(NULL, vc_int, 0, vec.len, &index, (void*)&DATA2[searched_index]);
-    VEC_SEARCH_RESULT error3 = vec_find_first(&vec, NULL, 0, vec.len, &index, (void*)&DATA2[searched_index]);
-    VEC_SEARCH_RESULT error4 = vec_find_first(&vec, vc_int, 0, vec.len, &index, NULL);
-    VEC_SEARCH_RESULT error5 = vec_find_first(&vec, vc_int, 128, 234, &index, (void*)&DATA2[searched_index]);
-    VEC_SEARCH_RESULT error6 = vec_find_first(&vec, vc_int, vec.len, vec.len+1, &index, (void*)&DATA2[searched_index]);
-    VEC_SEARCH_RESULT error7 = vec_find_first(&vec, vc_int, vec.len, 2, &index, (void*)&DATA2[searched_index]);
-    VEC_SEARCH_RESULT error8 = vec_find_first(&vec, vc_int, vec.len, vec.len, &index, (void*)&DATA2[searched_index]);
-    VEC_SEARCH_RESULT ok = vec_find_first(&vec, vc_int, 0, vec.len, &index, (void*)&DATA2[searched_index]);
+    VEC_RESULT error1 = vec_find_first(&vec, vc_int, 2, vec.len, &index, (void*)&DATA2[searched_index]);
+    VEC_RESULT error2 = vec_find_first(NULL, vc_int, 0, vec.len, &index, (void*)&DATA2[searched_index]);
+    VEC_RESULT error3 = vec_find_first(&vec, NULL, 0, vec.len, &index, (void*)&DATA2[searched_index]);
+    VEC_RESULT error4 = vec_find_first(&vec, vc_int, 0, vec.len, &index, NULL);
+    VEC_RESULT error5 = vec_find_first(&vec, vc_int, 128, 234, &index, (void*)&DATA2[searched_index]);
+    VEC_RESULT error6 = vec_find_first(&vec, vc_int, vec.len, vec.len+1, &index, (void*)&DATA2[searched_index]);
+    VEC_RESULT error7 = vec_find_first(&vec, vc_int, vec.len, 2, &index, (void*)&DATA2[searched_index]);
+    VEC_RESULT error8 = vec_find_first(&vec, vc_int, vec.len, vec.len, &index, (void*)&DATA2[searched_index]);
+    VEC_RESULT ok = vec_find_first(&vec, vc_int, 0, vec.len, &index, (void*)&DATA2[searched_index]);
 
     end_test(
-        error1 == VSR_NOT_FOUND
-        && error2 == VSR_INVALID_VEC
-        && error3 == VSR_INVALID_COMP
-        && error4 == VSR_INVALID_SEARCHED
-        && error5 == VSR_OUT_OF_BOUNDS && error6 == VSR_OUT_OF_BOUNDS
-        && error7 == VSR_INVALID_BOUNDS && error8 == VSR_INVALID_BOUNDS
-        && ok == VSR_OK && index == searched_index,
+        error1 == VECR_NOT_FOUND
+        && error2 == VECR_NULL_VEC
+        && error3 == VECR_NULL_COMP
+        && error4 == VECR_NULL_SEARCHED
+        && error5 == VECR_OUT_OF_BOUNDS && error6 == VECR_OUT_OF_BOUNDS
+        && error7 == VECR_INVALID_BEG && error8 == VECR_INVALID_BEG
+        && ok == VECR_OK && index == searched_index,
         vec_drop_single_s(&vec)
     );
 

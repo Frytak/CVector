@@ -91,12 +91,12 @@ int vec_copy_test() {
     // Test 8: error handling
     start_test(8);
     vec = vec_new(DATA2_SIZE, (void*)&DATA2, DATA2_LEN);
-    VEC_COPY_RESULT error1 = vec_copy_into_s(NULL, NULL);
-    VEC_COPY_RESULT error2 = vec_copy_into_s(&vec, NULL);
-    VEC_COPY_RESULT ok = vec_copy_into_s(&vec, &vec_copied);
+    VEC_RESULT error1 = vec_copy_into_s(NULL, NULL);
+    VEC_RESULT error2 = vec_copy_into_s(&vec, NULL);
+    VEC_RESULT ok = vec_copy_into_s(&vec, &vec_copied);
 
     end_test(
-        error1 == VCR_INVALID_SOURCE && error2 == VCR_INVALID_DESTINATION && ok == VCR_OK && vec_is_partial_eq_s(&vec, &vec_copied),
+        error1 == VECR_NULL_SOURCE && error2 == VECR_NULL_DESTINATION && ok == VECR_OK && vec_is_partial_eq_s(&vec, &vec_copied),
         vec_drop_s(&vec, &vec_copied)
     );
 

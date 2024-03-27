@@ -5,13 +5,13 @@
 #include <corecrt.h>
 #include <stdbool.h>
 
+
+
 typedef struct {
     bool PRINT_WITH_COLORS;
     bool FPRINT_WITH_COLORS;
     uint8_t TIMSORT_RUN_SIZE;
 } VecConfig;
-
-extern VecConfig VEC_CONFIG;
 
 bool vec_cg_print_colors();
 void vec_cs_print_colors(bool set);
@@ -22,180 +22,53 @@ void vec_cs_fprint_colors(bool set);
 uint8_t vec_cg_timsort_run_size();
 void vec_cs_timsort_run_size(uint8_t set);
 
-// Vector binary search comparison function return values
-typedef enum {
-    // The searched value is to the left
-    VBSCR_LEFT,
+typedef uint8_t VEC_RESULT;
+// Valid values
 
-    // The searched value is to the right
-    VBSCR_RIGHT,
+/// Everything went well.
+#define VECR_OK 0
+/// Binary search, value was found, same as `VECR_OK`.
+#define VECR_FOUND 0
+/// Binary search, value is to the left of the current position.
+#define VECR_LEFT 1
+/// Binary search, value is to the right of the current position.
+#define VECR_RIGHT 2
 
-    // Found the serched value
-    VBSCR_FOUND,
-} VEC_BINARY_SEARCH_COMP_RESULT;
 
-// Vector binary search return values
-typedef enum {
-    // No errors, value was found
-    VSR_OK,
 
-    // The value doesn't exist in the specified boundries
-    VSR_NOT_FOUND,
+// Erroneous values
 
-    // Pointer to `vec` is NULL
-    VSR_INVALID_VEC,
+/// `vec` is NULL
+#define VECR_NULL_VEC 20
+/// Source `vec` is NULL
+#define VECR_NULL_SOURCE 21
+/// Destination `vec` is NULL
+#define VECR_NULL_DESTINATION 22
 
-    // Pointer to `comp` is NULL
-    VSR_INVALID_COMP,
+/// `vec->data` is NULL
+#define VECR_NULL_VEC_DATA 30
+/// `data` is NULL
+#define VECR_NULL_DATA 40
 
-    // Pointer to `searched` is NULL
-    VSR_INVALID_SEARCHED,
+/// `index` is out of bounds
+#define VECR_OUT_OF_BOUNDS 50
+/// `range(s)` is NULL
+#define VECR_NULL_RANGE 51
+/// `range(s)` is in an incorrect format
+#define VECR_INVALID_RANGE 52
+/// `beg` is NULL
+#define VECR_NULL_BEG 53
+/// `end` is NULL
+#define VECR_NULL_END 54
+/// `beg` is bigger than `end`
+#define VECR_INVALID_BEG 55
 
-    // `beg` or/and `end` are larger than the vectors' length
-    VSR_OUT_OF_BOUNDS,
-
-    // `beg` is bigger than `end`
-    VSR_INVALID_BOUNDS,
-} VEC_SEARCH_RESULT;
-
-// `vec_init` result
-typedef enum {
-    // No errors, `vec` initialized
-    VIR_OK,
-
-    // Pointer to `vec` is NULL
-    VIR_INVALID_VEC,
-} VEC_INIT_RESULT;
-
-// `vec_push` result
-typedef enum {
-    // No errors, value inserted
-    VPR_OK,
-
-    // Pointer to `vec` is NULL
-    VPR_INVALID_VEC,
-
-    // Pointer to `vec->data` is NULL
-    VPR_INVALID_VEC_DATA,
-
-    // Pointer to `data` is NULL
-    VPR_INVALID_DATA,
-} VEC_PUSH_RESULT;
-
-typedef enum {
-    // No errors, value removed and data shifted
-    VRER_OK,
-
-    // Pointer to `vec` is NULL
-    VRER_INVALID_VEC,
-
-    // Pointer to `vec->data` is NULL
-    VRER_INVALID_VEC_DATA,
-
-    // Provided index is bigger than the vectors' length
-    VRER_OUT_OF_BOUNDS,
-} VEC_REMOVE_RESULT;
-
-typedef enum {
-    // No errors, value removed and data shifted
-    VRERR_OK,
-
-    // Pointer to `vec` is NULL
-    VRERR_INVALID_VEC,
-
-    // Pointer to `vec->data` is NULL
-    VRERR_INVALID_VEC_DATA,
-
-    // `beg` is bigger than `end`
-    VRERR_INVALID_BOUNDS,
-
-    // Provided `beg` or/and `end` are bigger than the vectors' length
-    VRERR_OUT_OF_BOUNDS,
-} VEC_REMOVE_RANGE_RESULT;
-
-typedef enum {
-    // No errors, values removed and data shifted
-    VRENRR_OK,
-
-    // Pointer to `vec` is NULL
-    VRENRR_INVALID_VEC,
-
-    // Pointer to `vec->data` is NULL
-    VRENRR_INVALID_VEC_DATA,
-
-    // Pointer to `ranges` is NULL
-    VRENRR_INVALID_RANGES,
-
-    // Given ranges are not normalized
-    VRENRR_NON_NORMALIZED_RANGES,
-} VEC_REMOVE_NORMALIZED_RANGES_RESULT;
-
-// `vec_reserve` result
-typedef enum {
-    // No errors, capacity reserved
-    VRR_OK,
-
-    // Pointer to `vec` is NULL
-    VRR_INVALID_VEC,
-} VEC_RESERVE_RESULT;
-
-typedef enum {
-    // No errors, copy successful
-    VCR_OK,
-
-    // Source vector is invalid
-    VCR_INVALID_SOURCE,
-
-    // Destination vector is invalid
-    VCR_INVALID_DESTINATION,
-
-    // Unknown error leading to an unsuccessful copy.
-    // This error might be caused by data races, cosmic rays or other such stuff.
-    // Good luck!
-    //
-    // WARNING! This error only checks if `len`, `cap` and `size` are copied properly, not the contents.
-    VCR_UNKNOWN,
-} VEC_COPY_RESULT;
-
-typedef enum {
-    // No errors, vectors compared successfully
-    VER_OK,
-
-    // First vector is invalid
-    VER_INVALID_SOURCE,
-
-    // Second vector is invalid
-    VER_INVALID_DESTINATION,
-} VEC_EQ_RESULT;
-
-typedef enum {
-    // No errors, vector dropped successfully
-    VDR_OK,
-
-    // Invalid pointer to vector
-    VDR_INVALID_VEC,
-
-    // Invalid pointer to data of a vector, can't be dropped
-    VDR_INVALID_VEC_DATA,
-} VEC_DROP_RESULT;
-
-typedef enum {
-    // No errors, data inserted successfully
-    VISR_OK,
-
-    // Invalid pointer to vector
-    VISR_INVALID_VEC,
-
-    // Invalid pointer to data of a vector
-    VISR_INVALID_VEC_DATA,
-
-    // Invalid pointer to data
-    VISR_INVALID_DATA,
-
-    // Index is larger than vectors length.
-    // It can be between <0,vec.len>.
-    VISR_OUT_OF_BOUNDS,
-} VEC_INSERT_RESULT;
+/// `searched` was not found
+#define VECR_NOT_FOUND 80
+/// `searched` is NULL
+#define VECR_NULL_SEARCHED 81
+/// `comp` is NULL
+#define VECR_NULL_COMP 82
 
 typedef enum {
     VPT_U8, // Format specifier: `%hhu`.
@@ -239,14 +112,14 @@ size_t _vec_get_p2_cap(size_t amount);
 void vec_drop_single(Vector *vec);
 void _vec_drop(Vector *vec, ...);
 #define vec_drop(...) _vec_drop(__VA_ARGS__, VEC_VARIADIC_END)
-VEC_DROP_RESULT vec_drop_single_s(Vector *vec);
-VEC_DROP_RESULT _vec_drop_s(Vector *vec, ...);
+VEC_RESULT vec_drop_single_s(Vector *vec);
+VEC_RESULT _vec_drop_s(Vector *vec, ...);
 #define vec_drop_s(...) _vec_drop_s(__VA_ARGS__, VEC_VARIADIC_END)
 
 void vec_reserve(Vector *vec, size_t cap);
-VEC_RESERVE_RESULT vec_reserve_s(Vector *vec, size_t cap);
+VEC_RESULT vec_reserve_s(Vector *vec, size_t cap);
 
-VEC_INIT_RESULT vec_init(Vector *vec, size_t size, void *data, size_t amount);
+VEC_RESULT vec_init(Vector *vec, size_t size, void *data, size_t amount);
 Vector vec_new(size_t size, void *data, size_t amount);
 
 void *vec_get(Vector *vec, size_t index);
@@ -254,25 +127,25 @@ void *vec_get_s(Vector *vec, size_t index);
 
 void vec_force_push(Vector *vec, void *data);
 void vec_push(Vector *vec, void *data);
-VEC_PUSH_RESULT vec_push_s(Vector *vec, void *data);
+VEC_RESULT vec_push_s(Vector *vec, void *data);
 void vec_push_multi(Vector *vec, void *data, size_t amount);
-VEC_PUSH_RESULT vec_push_multi_s(Vector *vec, void *data, size_t amount);
+VEC_RESULT vec_push_multi_s(Vector *vec, void *data, size_t amount);
 
 void vec_insert(Vector *vec, size_t index, void *data);
-VEC_INSERT_RESULT vec_insert_s(Vector *vec, size_t index, void *data);
+VEC_RESULT vec_insert_s(Vector *vec, size_t index, void *data);
 
 void vec_remove(Vector *vec, size_t index);
-VEC_REMOVE_RESULT vec_remove_s(Vector *vec, size_t index);
+VEC_RESULT vec_remove_s(Vector *vec, size_t index);
 void vec_remove_range(Vector *vec, size_t beg, size_t end);
-VEC_REMOVE_RANGE_RESULT vec_remove_range_s(Vector *vec, size_t beg, size_t end);
+VEC_RESULT vec_remove_range_s(Vector *vec, size_t beg, size_t end);
 void vec_remove_normalized_ranges(Vector *vec, size_t *ranges, size_t amount);
-VEC_REMOVE_NORMALIZED_RANGES_RESULT vec_remove_normalized_ranges_s(Vector *vec, size_t *ranges, size_t amount);
+VEC_RESULT vec_remove_normalized_ranges_s(Vector *vec, size_t *ranges, size_t amount);
 
-VEC_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched);
-VEC_BINARY_SEARCH_COMP_RESULT vbsc_int(void *current_num, void *searched_num);
-VEC_BINARY_SEARCH_COMP_RESULT vbsc_rf(void *current_char, void *_);
+VEC_RESULT vec_binary_search(Vector *vec, VEC_RESULT (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched);
+VEC_RESULT vbsc_int(void *current_num, void *searched_num);
+VEC_RESULT vbsc_rf(void *current_char, void *_);
 
-VEC_SEARCH_RESULT vec_find_first(Vector *vec, bool (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched);
+VEC_RESULT vec_find_first(Vector *vec, bool (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched);
 bool vc_int(void *current_num, void *searched_num);
 bool vc_char(void *current_num, void *searched_num);
 
@@ -288,7 +161,7 @@ bool vec_is_eq_deep_s(Vector *vec1, Vector *vec2);
 Vector vec_copy(Vector *vec);
 Vector vec_copy_s(Vector *vec);
 void vec_copy_into(Vector *source_vec, Vector *destination_vec);
-VEC_COPY_RESULT vec_copy_into_s(Vector *source_vec, Vector *destination_vec);
+VEC_RESULT vec_copy_into_s(Vector *source_vec, Vector *destination_vec);
 
 void vec_swap(Vector *vec, size_t first_index, size_t second_index);
 void vec_swap_s(Vector *vec, size_t first_index, size_t second_index);

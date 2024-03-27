@@ -8,6 +8,11 @@
 #include <vadefs.h>
 #include "vec.h"
 
+// TODO: Better documentation
+// TODO: Fix tests
+//     - No full error handling
+//     - Some test are lacking
+
 VecConfig VEC_CONFIG = {
     false, // bool PRINT_WITH_COLORS
     false, // bool FPRINT_WITH_COLORS
@@ -63,13 +68,13 @@ void vec_drop_single(Vector *vec) {
 /// data or you'll leak memory!
 ///
 /// This function ensures that:
-///     - `vec` is not NULL
-///     - `vec->data` is not NULL
-VEC_DROP_RESULT vec_drop_single_s(Vector *vec) {
-    if (vec == NULL) { return VDR_INVALID_VEC; }
-    if (vec->data == NULL) { return VDR_INVALID_VEC_DATA; }
+///     - `vec` is not NULL (`VECR_NULL_VEC`)
+///     - `vec->data` is not NULL (`VECR_NULL_VEC_DATA`)
+VEC_RESULT vec_drop_single_s(Vector *vec) {
+    if (vec == NULL) { return VECR_NULL_VEC; }
+    if (vec->data == NULL) { return VECR_NULL_VEC_DATA; }
     vec_drop_single(vec);
-    return VDR_OK;
+    return VECR_OK;
 }
 
 /// Drops the `data` pointer for each vector.
@@ -105,10 +110,10 @@ void _vec_drop(Vector *vec, ...) {
 /// data or you'll leak memory!
 ///
 /// This function ensures that:
-///     - `vec` is not NULL
-///     - `vec->data` is not NULL
-VEC_DROP_RESULT _vec_drop_s(Vector *vec, ...) {
-    VEC_DROP_RESULT result = vec_drop_single_s(vec);
+///     - `vec` is not NULL (`VECR_NULL_VEC`) 
+///     - `vec->data` is not NULL (`VECR_NULL_VEC_DATA`)
+VEC_RESULT _vec_drop_s(Vector *vec, ...) {
+    VEC_RESULT result = vec_drop_single_s(vec);
 
     va_list args;
     va_start(args, vec);
@@ -119,8 +124,8 @@ VEC_DROP_RESULT _vec_drop_s(Vector *vec, ...) {
             if (vec_is_eq(arg, (Vector*)&VEC_VARIADIC_END)) { break; }
         }
 
-        VEC_DROP_RESULT result2 = vec_drop_single_s(arg);
-        if (result == VDR_OK) {
+        VEC_RESULT result2 = vec_drop_single_s(arg);
+        if (result == VECR_OK) {
             result = result2;
         }
     }
@@ -159,12 +164,12 @@ void vec_reserve(Vector *vec, size_t cap) {
 /// data or you'll leak memory!
 ///
 /// This function ensures that:
-///     - `vec` is not NULL
-VEC_RESERVE_RESULT vec_reserve_s(Vector *vec, size_t cap) {
-    if (vec == NULL) { return VRR_INVALID_VEC; }
+///     - `vec` is not NULL (`VECR_NULL_VEC`)
+VEC_RESULT vec_reserve_s(Vector *vec, size_t cap) {
+    if (vec == NULL) { return VECR_NULL_VEC; }
     vec_reserve(vec, cap);
 
-    return VRR_OK;
+    return VECR_OK;
 }
 
 // Doubles the capacity of a vector, or assigns `1` if the capacity is `0`.
@@ -176,9 +181,13 @@ void _vec_reserve_double(Vector *vec) {
     }
 }
 
+// TODO: vec_init and vec_init_s
 /// Initializes the vector with the given data if any
-VEC_INIT_RESULT vec_init(Vector *vec, size_t size, void *data, size_t amount) {
-    if (vec == NULL) { return VIR_INVALID_VEC; }
+///
+/// This function ensures that:
+///     - `vec` is not NULL (`VECR_NULL_VEC`)
+VEC_RESULT vec_init(Vector *vec, size_t size, void *data, size_t amount) {
+    if (vec == NULL) { return VECR_NULL_VEC; }
 
     // Assign the default data
     vec->len = 0;
@@ -187,10 +196,10 @@ VEC_INIT_RESULT vec_init(Vector *vec, size_t size, void *data, size_t amount) {
     vec->data = NULL;
 
     // If `size` is 0, everything else should be 0/NULL
-    if (size == 0) { return 0; }
+    if (size == 0) { return VECR_OK; }
 
     // If the `amount` is 0, `data`, `len` and `cap` should be 0/NULL
-    if (amount == 0) { return 0; }
+    if (amount == 0) { return VECR_OK; }
 
     // Otherwise, we need to allocate a power of two for the `cap` and set the `len` equal to `amount`
     vec->cap = _vec_get_p2_cap(amount);
@@ -204,9 +213,10 @@ VEC_INIT_RESULT vec_init(Vector *vec, size_t size, void *data, size_t amount) {
         memcpy(vec->data, data, vec->size * amount);
     }
 
-    return VIR_OK;
+    return VECR_OK;
 }
 
+// TODO: vec_new and vec_new_s
 /// Create a new `Vector` with the given data
 /// The amount will be alligned to set the capacity as a power of 2
 Vector vec_new(size_t size, void *data, size_t amount) {
@@ -244,14 +254,15 @@ void vec_force_push(Vector *vec, void *data) {
 /// Doesn't check if there is enough capacity and won't increase it.
 ///
 /// This function ensures that:
-///     - `vec` is not NULL
-///     - `vec->data` is not NULL
-///     - `data` is not NULL
-void vec_force_push_s(Vector *vec, void *data) {
-    if (vec == NULL) { return; }
-    if (vec->data == NULL) { return; }
-    if (data == NULL) { return; }
+///     - `vec` is not NULL (`VECR_NULL_VEC`)
+///     - `vec->data` is not NULL (`VECR_NULL_VEC_DATA`)
+///     - `data` is not NULL (`VECR_NULL_DATA`)
+VEC_RESULT vec_force_push_s(Vector *vec, void *data) {
+    if (vec == NULL) { return VECR_NULL_VEC; }
+    if (vec->data == NULL) { VECR_NULL_VEC_DATA; }
+    if (data == NULL) { return VECR_NULL_DATA; }
     vec_force_push(vec, data);
+    return VECR_OK;
 }
 
 /// Pushes the provided data as the last element of the vector.
@@ -268,16 +279,16 @@ void vec_push(Vector *vec, void *data) {
 /// Pushes the provided data as the last element of the vector.
 ///
 /// This function ensures that:
-///     - `vec` is not NULL
-///     - `vec->data` is not NULL
-///     - `data` is not NULL
-VEC_PUSH_RESULT vec_push_s(Vector *vec, void *data) {
-    if (vec == NULL) { return VPR_INVALID_VEC; }
-    if (vec->data == NULL) { return VPR_INVALID_VEC_DATA; }
-    if (data == NULL) { return VPR_INVALID_DATA; }
+///     - `vec` is not NULL (`VECR_NULL_VEC`)
+///     - `vec->data` is not NULL (`VECR_NULL_VEC_DATA`)
+///     - `data` is not NULL (`VECR_NULL_DATA`)
+VEC_RESULT vec_push_s(Vector *vec, void *data) {
+    if (vec == NULL) { return VECR_NULL_VEC; }
+    if (vec->data == NULL) { return VECR_NULL_VEC_DATA; }
+    if (data == NULL) { return VECR_NULL_DATA; }
     vec_push(vec, data);
 
-    return VPR_OK;
+    return VECR_OK;
 }
 
 /// Pushes the provided data as the last elements of the vector.
@@ -297,16 +308,16 @@ void vec_push_multi(Vector *vec, void *data, size_t amount) {
 /// Pushes the provided data as the last elements of the vector.
 ///
 /// This function ensures that:
-///     - `vec` is not NULL
-///     - `vec->data` is not NULL
-///     - `data` is not NULL
-VEC_PUSH_RESULT vec_push_multi_s(Vector *vec, void *data, size_t amount) {
-    if (vec == NULL) { return VPR_INVALID_VEC; }
-    if (vec->data == NULL) { return VPR_INVALID_VEC_DATA; }
-    if (data == NULL) { return VPR_INVALID_DATA; }
+///     - `vec` is not NULL (`VECR_NULL_VEC`)
+///     - `vec->data` is not NULL (`VECR_NULL_VEC_DATA`)
+///     - `data` is not NULL (`VECR_NULL_DATA`)
+VEC_RESULT vec_push_multi_s(Vector *vec, void *data, size_t amount) {
+    if (vec == NULL) { return VECR_NULL_VEC; }
+    if (vec->data == NULL) { return VECR_NULL_VEC_DATA; }
+    if (data == NULL) { return VECR_NULL_DATA; }
     vec_push_multi(vec, data, amount);
 
-    return 0;
+    return VECR_OK;
 }
 
 /// Inserts the provided data in the specified index of the vector.
@@ -331,14 +342,14 @@ void vec_insert(Vector *vec, size_t index, void *data) {
 ///     - `vec` is not NULL
 ///     - `vec->data` is not NULL
 ///     - `data` is not NULL
-VEC_INSERT_RESULT vec_insert_s(Vector *vec, size_t index, void *data) {
-    if (vec == NULL) { return VISR_INVALID_VEC; }
-    if (vec->data == NULL) { return VISR_INVALID_VEC_DATA; }
-    if (data == NULL) { return VISR_INVALID_DATA; }
-    if (index > vec->len) { return VISR_OUT_OF_BOUNDS; }
+VEC_RESULT vec_insert_s(Vector *vec, size_t index, void *data) {
+    if (vec == NULL) { return VECR_NULL_VEC; }
+    if (vec->data == NULL) { return VECR_NULL_VEC_DATA; }
+    if (data == NULL) { return VECR_NULL_DATA; }
+    if (index > vec->len) { return VECR_OUT_OF_BOUNDS; }
 
     vec_insert(vec, index, data);
-    return VISR_OK;
+    return VECR_OK;
 }
 
 /// Remove the element at the specified index of the vector and shift
@@ -350,23 +361,24 @@ void vec_remove(Vector *vec, size_t index) {
     memcpy(vec_get(vec, index), vec_get(vec, index+1), vec->size * (vec->len+1 - index+1));
 }
 
+// TODO: pop
 /// Remove the element at the specified index of the vector and shift
 /// the rest of the data to leave no gaps.
 ///
 /// This function ensures that:
-///     - `vec` is not NULL
-///     - `vec->data` is not NULL
-///     - `index` is in bounds
-VEC_REMOVE_RESULT vec_remove_s(Vector *vec, size_t index) {
-    if (vec == NULL) { return VRER_INVALID_VEC; }
-    if (vec->data == NULL) { return VRER_INVALID_VEC_DATA; }
-    if (index >= vec->len) { return VRER_OUT_OF_BOUNDS; }
+///     - `vec` is not NULL (`VECR_NULL_VEC`)
+///     - `vec->data` is not NULL (`VECR_NULL_VEC_DATA`)
+///     - `index` is in bounds (`VECR_OUT_OF_BOUNDS`)
+VEC_RESULT vec_remove_s(Vector *vec, size_t index) {
+    if (vec == NULL) { return VECR_NULL_VEC; }
+    if (vec->data == NULL) { return VECR_NULL_VEC_DATA; }
+    if (index >= vec->len) { return VECR_OUT_OF_BOUNDS; }
 
     vec->len--;
-    if (index == vec->len) { return VRER_OK; }
+    if (index == vec->len) { return VECR_OK; }
 
     memcpy(vec_get(vec, index), vec_get(vec, index+1), vec->size * (vec->len+1 - index+1));
-    return VRER_OK;
+    return VECR_OK;
 }
 
 
@@ -382,19 +394,18 @@ void vec_remove_range(Vector *vec, size_t beg, size_t end) {
 /// shift the rest of the data to leave no gaps.
 ///
 /// This function ensures that:
-///     - `vec` is not NULL
-///     - `vec->data` is not NULL
-///     - `beg` is in bounds
-///     - `end` is in bounds
-///     - `beg` is smaller than `end`
-VEC_REMOVE_RANGE_RESULT vec_remove_range_s(Vector *vec, size_t beg, size_t end) {
-    if (vec == NULL) { return VRERR_INVALID_VEC; }
-    if (vec->data == NULL) { return VRERR_INVALID_VEC_DATA; }
-    if (end < beg) { return VRERR_INVALID_BOUNDS; }
-    if (end > vec->len || beg >= vec->len) { return VRERR_OUT_OF_BOUNDS; }
+///     - `vec` is not NULL (`VECR_NULL_VEC`)
+///     - `vec->data` is not NULL (`VECR_NULL_VEC_DATA`)
+///     - `beg` is smaller than `end` (`VECR_INVALID_BEG`)
+///     - `beg` and `end` is in bounds (`VECR_OUT_OF_BOUNDS`)
+VEC_RESULT vec_remove_range_s(Vector *vec, size_t beg, size_t end) {
+    if (vec == NULL) { return VECR_NULL_VEC; }
+    if (vec->data == NULL) { return VECR_NULL_VEC_DATA; }
+    if (end < beg) { return VECR_INVALID_BEG; }
+    if (end > vec->len || beg >= vec->len) { return VECR_OUT_OF_BOUNDS; }
 
     vec_remove_range(vec, beg, end);
-    return VRERR_OK;
+    return VECR_OK;
 }
 
 /// Remove the elements at multiple specified ranges of indexes of the vector and
@@ -441,24 +452,24 @@ void vec_remove_normalized_ranges(Vector *vec, size_t *ranges, size_t amount) {
 ///     - each range has at least one index of space left in between, otherwise they should be one range
 ///
 /// This function ensures that:
-///     - `vec` is not NULL
-///     - `vec->data` is not NULL
-///     - `ranges` is not NULL
-///     - ranges are normalized
-VEC_REMOVE_NORMALIZED_RANGES_RESULT vec_remove_normalized_ranges_s(Vector *vec, size_t *ranges, size_t amount) {
-    if (vec == NULL) { return VRENRR_INVALID_VEC; }
-    if (vec->data == NULL) { return VRENRR_INVALID_VEC_DATA; }
-    if (ranges == NULL) { return VRENRR_INVALID_RANGES; }
+///     - `vec` is not NULL (`VECR_NULL_VEC`)
+///     - `vec->data` is not NULL (`VECR_NULL_VEC_DATA`)
+///     - `ranges` is not NULL (`VECR_NULL_RANGE`)
+///     - ranges are normalized (`VECR_INVALID_RANGE`)
+VEC_RESULT vec_remove_normalized_ranges_s(Vector *vec, size_t *ranges, size_t amount) {
+    if (vec == NULL) { return VECR_NULL_VEC; }
+    if (vec->data == NULL) { return VECR_NULL_VEC_DATA; }
+    if (ranges == NULL) { return VECR_NULL_RANGE; }
 
     // Check if the ranges are normalized
     size_t highest_seen = ranges[0];
     for (size_t i = 1; i < amount*2; i++) {
-        if (ranges[i] <= highest_seen) { return VRENRR_NON_NORMALIZED_RANGES; }
+        if (ranges[i] <= highest_seen) { return VECR_INVALID_RANGE; }
         highest_seen = ranges[i];
     }
 
     vec_remove_normalized_ranges(vec, ranges, amount);
-    return VRENRR_OK;
+    return VECR_OK;
 }
 
 // TODO: Automatic normalization. For now I won't implement it as there are other functions that will be usefull while implementing this one.
@@ -480,13 +491,22 @@ VEC_REMOVE_NORMALIZED_RANGES_RESULT vec_remove_normalized_ranges_s(Vector *vec, 
 ///
 /// `index` will be assigned to the searched value index if found
 /// otherwise it's left as is.
-VEC_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched) {
-    if (vec == NULL) { return VSR_INVALID_VEC; }
-    if (comp == NULL) { return VSR_INVALID_COMP; }
+///
+/// This function ensures that:
+///     - `vec` is not NULL (`VECR_NULL_VEC`)
+///     - `vec->data` is not NULL (`VECR_NULL_VEC_DATA`)
+///     - `comp` is not NULL (`VECR_NULL_COMP`)
+///     - `searched` is not NULL (`VECR_NULL_SEARCHED`)
+///     - `beg` is smaller than `end` (`VECR_INVALID_BEG`)
+///     - `beg` and `end` is in bounds (`VECR_OUT_OF_BOUNDS`)
+VEC_RESULT vec_binary_search(Vector *vec, VEC_RESULT (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched) {
+    if (vec == NULL) { return VECR_NULL_VEC; }
+    if (vec->data == NULL) { return VECR_NULL_VEC_DATA; }
+    if (comp == NULL) { return VECR_NULL_COMP; }
     // TODO: This error check shouldn't be here
-    if (searched == NULL) { return VSR_INVALID_SEARCHED; }
-    if (vec->len < end || vec->len < beg) { return VSR_OUT_OF_BOUNDS; }
-    if (beg >= end) { return VSR_INVALID_BOUNDS; }
+    if (searched == NULL) { return VECR_NULL_SEARCHED; }
+    if (vec->len < end || vec->len < beg) { return VECR_OUT_OF_BOUNDS; }
+    if (beg >= end) { return VECR_INVALID_BEG; }
     size_t new_beg = beg;
     size_t new_end = end;
 
@@ -495,19 +515,19 @@ VEC_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (
         char* current_char = vec->data + (vec->size * middle);
 
         if (middle == new_end || middle == new_beg) {
-            VEC_BINARY_SEARCH_COMP_RESULT result = comp(current_char, searched);
-            if (result == VBSCR_FOUND) { *index = middle; return VSR_OK; }
-            return VSR_NOT_FOUND;
+            VEC_RESULT result = comp(current_char, searched);
+            if (result == VECR_FOUND) { *index = middle; return VECR_OK; }
+            return VECR_NOT_FOUND;
         }
 
         switch (comp(current_char, searched)) {
-            case VBSCR_LEFT: { new_end = middle; break; }
-            case VBSCR_FOUND: { *index = middle; return VSR_OK; }
-            case VBSCR_RIGHT: { new_beg = middle; break; }
+            case VECR_LEFT: { new_end = middle; break; }
+            case VECR_FOUND: { *index = middle; return VECR_OK; }
+            case VECR_RIGHT: { new_beg = middle; break; }
         }
     }
 
-    return VSR_NOT_FOUND;
+    return VECR_NOT_FOUND;
 }
 
 //void _vec_insertion_sort(Vector *vec) {
@@ -524,19 +544,19 @@ VEC_SEARCH_RESULT vec_binary_search(Vector *vec, VEC_BINARY_SEARCH_COMP_RESULT (
 //}
 
 /// Comp function of binary search for `ints`
-VEC_BINARY_SEARCH_COMP_RESULT vbsc_int(void *current_num, void *searched_num) {
-    if (*(int*)current_num > *(int*)searched_num) { return VBSCR_LEFT; }
-    if (*(int*)current_num < *(int*)searched_num) { return VBSCR_RIGHT; }
-    if (*(int*)current_num == *(int*)searched_num) { return VBSCR_FOUND; }
+VEC_RESULT vbsc_int(void *current_num, void *searched_num) {
+    if (*(int*)current_num > *(int*)searched_num) { return VECR_LEFT; }
+    if (*(int*)current_num < *(int*)searched_num) { return VECR_RIGHT; }
+    if (*(int*)current_num == *(int*)searched_num) { return VECR_FOUND; }
     return -1;
 }
 
 /// Comp function of binary search for end of line in an zeroed out (from the right side) buffer
-VEC_BINARY_SEARCH_COMP_RESULT vbsc_rf(void *current_char, void *_) {
+VEC_RESULT vbsc_rf(void *current_char, void *_) {
     switch (*(char*)current_char) {
-        case '\n': { return VBSCR_FOUND; }
-        case 0: { return VBSCR_LEFT; }
-        default: { return VBSCR_RIGHT; }
+        case '\n': { return VECR_FOUND; }
+        case 0: { return VECR_LEFT; }
+        default: { return VECR_RIGHT; }
     }
 }
 
@@ -559,21 +579,30 @@ bool vc_char(void *current_num, void *searched_num) {
 ///
 /// `beg` and `end` are boundries of indexes of where the search
 /// will be performed, `<beg,end)`.
-VEC_SEARCH_RESULT vec_find_first(Vector *vec, bool (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched) {
-    if (vec == NULL) { return VSR_INVALID_VEC; }
-    if (comp == NULL) { return VSR_INVALID_COMP; }
-    if (searched == NULL) { return VSR_INVALID_SEARCHED; }
-    if (vec->len < end || vec->len < beg) { return VSR_OUT_OF_BOUNDS; }
-    if (beg >= end) { return VSR_INVALID_BOUNDS; }
+///
+/// This function ensures that:
+///     - `vec` is not NULL (`VECR_NULL_VEC`)
+///     - `vec->data` is not NULL (`VECR_NULL_VEC_DATA`)
+///     - `comp` is not NULL (`VECR_NULL_COMP`)
+///     - `searched` is not NULL (`VECR_NULL_SEARCHED`)
+///     - `beg` is smaller than `end` (`VECR_INVALID_BEG`)
+///     - `beg` and `end` is in bounds (`VECR_OUT_OF_BOUNDS`)
+VEC_RESULT vec_find_first(Vector *vec, bool (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched) {
+    if (vec == NULL) { return VECR_NULL_VEC; }
+    if (vec->data == NULL) { return VECR_NULL_VEC_DATA; }
+    if (comp == NULL) { return VECR_NULL_COMP; }
+    if (searched == NULL) { return VECR_NULL_SEARCHED; }
+    if (vec->len < end || vec->len < beg) { return VECR_OUT_OF_BOUNDS; }
+    if (beg >= end) { return VECR_INVALID_BEG; }
 
     for (size_t x = beg; x < end; x++) {
         if (comp(vec_get(vec, x), searched)) {
             if (index != NULL) { *index = x; }
-            return VSR_OK;
+            return VECR_OK;
         }
     }
 
-    return VSR_NOT_FOUND;
+    return VECR_NOT_FOUND;
 }
 
 /// Checks if `len`, `cap` and `size` of a vector are equal.
@@ -688,13 +717,13 @@ void vec_copy_into(Vector *source_vec, Vector *destination_vec) {
 /// This function ensures that:
 ///     - `source_vec` is not NULL
 ///     - `destination_vec` is not NULL
-VEC_COPY_RESULT vec_copy_into_s(Vector *source_vec, Vector *destination_vec) {
-    if (source_vec == NULL) { return VCR_INVALID_SOURCE; }
-    if (destination_vec == NULL) { return VCR_INVALID_DESTINATION; }
+VEC_RESULT vec_copy_into_s(Vector *source_vec, Vector *destination_vec) {
+    if (source_vec == NULL) { return VECR_NULL_SOURCE; }
+    if (destination_vec == NULL) { return VECR_NULL_DESTINATION; }
 
     vec_copy_into(source_vec, destination_vec);
 
-    return VCR_OK;
+    return VECR_OK;
 }
 
 /// Swaps the data of two specified indices in the vector.
@@ -798,10 +827,10 @@ int vec_read_file(Vector *vec, char file_name[], size_t *bytes_written, bool min
 
             // TODO: Full error handling
             switch (vec_binary_search(&line, vbsc_rf, line.cap/2, line.cap, &index, NULL)) {
-                case VSR_OK: { vec_reserve(&line, line.cap - 2); goto line_read; }
-                case VSR_NOT_FOUND: { break; }
-                case VSR_INVALID_BOUNDS: { printf("ERROR: Invalid input."); break; }
-                case VSR_OUT_OF_BOUNDS: { printf("ERROR: Out of bounds."); break; }
+                case VECR_OK: { vec_reserve(&line, line.cap - 2); goto line_read; }
+                case VECR_NOT_FOUND: { break; }
+                case VECR_INVALID_BEG: { printf("ERROR: Invalid input."); break; }
+                case VECR_OUT_OF_BOUNDS: { printf("ERROR: Out of bounds."); break; }
                 default: { printf("ERROR: In binary search"); break; }
             }
         }
