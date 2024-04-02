@@ -352,6 +352,24 @@ VEC_RESULT vec_insert_s(Vector *vec, size_t index, void *data) {
     return VECR_OK;
 }
 
+/// Remove the last element of the vector.
+void vec_pop(Vector *vec) {
+    vec->len--;
+}
+
+/// Remove the last element of the vector.
+///
+/// This function ensures that:
+///     - `vec` is not NULL (`VECR_NULL_VEC`)
+///     - `vec->data` is not NULL (`VECR_NULL_VEC_DATA`)
+VEC_RESULT vec_pop_s(Vector *vec) {
+    if (vec == NULL) { return VECR_NULL_VEC; }
+    if (vec->data == NULL) { return VECR_NULL_VEC_DATA; }
+    vec_pop(vec);
+
+    return VECR_OK;
+}
+
 /// Remove the element at the specified index of the vector and shift
 /// the rest of the data to leave no gaps.
 void vec_remove(Vector *vec, size_t index) {
@@ -361,7 +379,6 @@ void vec_remove(Vector *vec, size_t index) {
     memcpy(vec_get(vec, index), vec_get(vec, index+1), vec->size * (vec->len+1 - index+1));
 }
 
-// TODO: pop
 /// Remove the element at the specified index of the vector and shift
 /// the rest of the data to leave no gaps.
 ///
