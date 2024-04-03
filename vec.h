@@ -47,8 +47,14 @@ typedef uint8_t VEC_RESULT;
 
 /// `vec->data` is NULL
 #define VECR_NULL_VEC_DATA 30
+/// `vec->len` is 
+#define VECR_ZERO_LEN 31
+
+
 /// `data` is NULL
 #define VECR_NULL_DATA 40
+/// `data` belongs to vector
+#define VECR_DATA_IN_VEC 50
 
 /// `index` is out of bounds
 #define VECR_OUT_OF_BOUNDS 50
@@ -131,8 +137,15 @@ VEC_RESULT vec_push_s(Vector *vec, void *data);
 void vec_push_multi(Vector *vec, void *data, size_t amount);
 VEC_RESULT vec_push_multi_s(Vector *vec, void *data, size_t amount);
 
-void vec_insert(Vector *vec, size_t index, void *data);
-VEC_RESULT vec_insert_s(Vector *vec, size_t index, void *data);
+#define vec_insert(vec, index, data) vec_insert_multi(vec, index, data, 1)
+#define vec_insert_s(vec, index, data) vec_insert_multi_s(vec, index, data, 1)
+#define vec_insert_c(vec, index, data) vec_insert_multi_c(vec, index, data, 1)
+#define vec_insert_cs(vec, index, data) vec_insert_multi_cs(vec, index, data, 1)
+
+void vec_insert_multi(Vector *vec, size_t index, void *data, size_t amount);
+VEC_RESULT vec_insert_multi_s(Vector *vec, size_t index, void *data, size_t amount);
+void vec_insert_multi_c(Vector *vec, size_t index, void *data, size_t amount);
+VEC_RESULT vec_insert_multi_cs(Vector *vec, size_t index, void *data, size_t amount);
 
 void vec_remove(Vector *vec, size_t index);
 VEC_RESULT vec_remove_s(Vector *vec, size_t index);

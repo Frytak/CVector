@@ -301,7 +301,6 @@ void vec_push_multi(Vector *vec, void *data, size_t amount) {
         vec_reserve(vec, _vec_get_cap(vec->cap, vec->len));
     }
 
-    // Copy the data
     memcpy(vec_get(vec, vec->len - amount), data, vec->size * amount);
 }
 
@@ -321,34 +320,76 @@ VEC_RESULT vec_push_multi_s(Vector *vec, void *data, size_t amount) {
 }
 
 /// Inserts the provided data in the specified index of the vector.
-void vec_insert(Vector *vec, size_t index, void *data) {
-    // Copy the `data` as it might exist in the vector, we don't want to rewrite it while shifting
-    void *value_copy = malloc(vec->size);
-    memcpy(value_copy, data, vec->size);
-
-    vec->len++;
+///
+/// WARNING! If you're passing data from the vector that you're inserting into
+/// (and it's after the inserted index) use `vec_insert_multi_c`.
+void vec_insert_multi(Vector *vec, size_t index, void *data, size_t amount) {
+    vec->len += amount;
     if (vec->cap < vec->len) {
-        _vec_reserve_double(vec);
+        vec_reserve(vec, _vec_get_cap(vec->cap, vec->len));
     }
 
     memcpy(vec_get(vec, index+1), vec_get(vec, index), vec->size*(vec->len-index));
-    memcpy(vec_get(vec, index), value_copy, vec->size);
+    memcpy(vec_get(vec, index), data, vec->size);
+}
+
+/// Inserts the provided data in the specified index of the vector.
+///
+/// WARNING! If you're passing data from the vector that you're inserting into
+/// (and it's after the inserted index) use `vec_insert_multi_cs`.
+///
+/// This function ensures that:
+///     - `vec` is not NULL (`VECR_NULL_VEC`)
+///     - `vec->data` is not NULL (`VECR_NULL_VEC_DATA`)
+///     - `data` is not NULL (`VECR_NULL_DATA`)
+///     - `index` is in bounds (`VECR_OUT_OF_BOUNDS`)
+///     - `data` is not owned by `vec` (`VECR_DATA_IN_VEC`)
+VEC_RESULT vec_insert_multi_s(Vector *vec, size_t index, void *data, size_t amount) {
+    if (vec == NULL) { return VECR_NULL_VEC; }
+    if (vec->data == NULL) { return VECR_NULL_VEC_DATA; }
+    if (data == NULL) { return VECR_NULL_DATA; }
+    if (index > vec->len) { return VECR_OUT_OF_BOUNDS; }
+    if (data > vec->data && data < vec->data+(vec->size * vec->len)) { return VECR_DATA_IN_VEC; }
+
+    vec_insert(vec, index, data);
+    return VECR_OK;
+}
+
+/// Inserts the provided data in the specified index of the vector.
+void vec_insert_multi_c(Vector *vec, size_t index, void *data, size_t amount) {
+    // Copy the `data` as it might exist in the vector, we don't want to rewrite it while shifting
+    void *value_copy = malloc(vec->size*amount);
+    memcpy(value_copy, data, vec->size*amount);
+
+    vec_insert_multi(vec, index, value_copy, amount);
+
     free(value_copy);
 }
 
 /// Inserts the provided data in the specified index of the vector.
 ///
 /// This function ensures that:
-///     - `vec` is not NULL
-///     - `vec->data` is not NULL
-///     - `data` is not NULL
-VEC_RESULT vec_insert_s(Vector *vec, size_t index, void *data) {
+///     - `vec` is not NULL (`VECR_NULL_VEC`)
+///     - `vec->data` is not NULL (`VECR_NULL_VEC_DATA`)
+///     - `data` is not NULL (`VECR_NULL_DATA`)
+///     - `index` is in bounds (`VECR_OUT_OF_BOUNDS`)
+///     - `data` is not owned by `vec` (`VECR_DATA_IN_VEC`)
+///
+/// If `data` is not owned by the `vec` then copying of the data will be ommited.
+VEC_RESULT vec_insert_multi_cs(Vector *vec, size_t index, void *data, size_t amount) {
     if (vec == NULL) { return VECR_NULL_VEC; }
     if (vec->data == NULL) { return VECR_NULL_VEC_DATA; }
     if (data == NULL) { return VECR_NULL_DATA; }
     if (index > vec->len) { return VECR_OUT_OF_BOUNDS; }
 
-    vec_insert(vec, index, data);
+    if (data > vec->data && data < vec->data+(vec->size * vec->len)) {
+        vec_insert_multi_c(vec, index, data, amount);
+        return VECR_OK;
+    } else {
+        vec_insert_multi(vec, index, data, amount);
+        return VECR_DATA_IN_VEC;
+    }
+
     return VECR_OK;
 }
 
@@ -362,10 +403,32 @@ void vec_pop(Vector *vec) {
 /// This function ensures that:
 ///     - `vec` is not NULL (`VECR_NULL_VEC`)
 ///     - `vec->data` is not NULL (`VECR_NULL_VEC_DATA`)
+///     - `vec->len` is not 0 (`VECR_ZERO_LEN`)
 VEC_RESULT vec_pop_s(Vector *vec) {
     if (vec == NULL) { return VECR_NULL_VEC; }
     if (vec->data == NULL) { return VECR_NULL_VEC_DATA; }
+    if (vec->len == 0) { return VECR_ZERO_LEN; }
     vec_pop(vec);
+
+    return VECR_OK;
+}
+
+/// Remove the last element of the vector.
+void vec_pop_back(Vector *vec) {
+    vec_remove(vec, 0);
+}
+
+/// Remove the last element of the vector.
+///
+/// This function ensures that:
+///     - `vec` is not NULL (`VECR_NULL_VEC`)
+///     - `vec->data` is not NULL (`VECR_NULL_VEC_DATA`)
+///     - `vec->len` is not 0 (`VECR_ZERO_LEN`)
+VEC_RESULT vec_pop_back_s(Vector *vec) {
+    if (vec == NULL) { return VECR_NULL_VEC; }
+    if (vec->data == NULL) { return VECR_NULL_VEC_DATA; }
+    if (vec->len == 0) { return VECR_ZERO_LEN; }
+    vec_pop_back(vec);
 
     return VECR_OK;
 }
@@ -374,8 +437,6 @@ VEC_RESULT vec_pop_s(Vector *vec) {
 /// the rest of the data to leave no gaps.
 void vec_remove(Vector *vec, size_t index) {
     vec->len--;
-    if (index == vec->len) { return; }
-
     memcpy(vec_get(vec, index), vec_get(vec, index+1), vec->size * (vec->len+1 - index+1));
 }
 
