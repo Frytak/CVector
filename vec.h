@@ -2,7 +2,6 @@
 #include <stdio.h>
 #define _FRYTAK_VEC
 
-#include <corecrt.h>
 #include <stdbool.h>
 
 
@@ -181,7 +180,7 @@ void vec_swap_s(Vector *vec, size_t first_index, size_t second_index);
 
 void vec_read_ascii_line(Vector *vec, FILE *file);
 void vec_read_ascii_line_s(Vector *vec, FILE *file);
-errno_t vec_read_file(Vector *vec, char file_name[], size_t *bytes_written, bool minimize);
+uint8_t vec_read_file(Vector *vec, char file_name[], size_t *bytes_written, bool minimize);
 
 #define VEC_CMD_ESC_BLACK "\033[30m"
 #define VEC_CMD_ESC_BRIGHT_BLACK "\033[90m"
