@@ -14,6 +14,7 @@
 #include "./vec_push/vec_push_test.h"
 #include "./vec_push_multi/vec_push_multi_test.h"
 #include "./vec_insert/vec_insert_test.h"
+#include "./vec_insertion_sort/vec_insertion_sort_test.h"
 #include "./vec_remove/vec_remove_test.h"
 #include "./vec_remove_range/vec_remove_range_test.h"
 // TODO: #include "./_vec_normalize_ranges/_vec_normalize_ranges_test.h"
@@ -52,6 +53,7 @@ int main() {
     result += test_func("vec_remove_normalized_ranges", vec_remove_normalized_ranges_test); printf("\n");
     result += test_func("vec_insert", vec_insert_test); printf("\n");
     result += test_func("vec_fprint", vec_fprint_test); printf("\n");
+    result += test_func("vec_insertion_sort", vec_insertion_sort_test); printf("\n");
     // TODO: result += test_func("_vec_normalize_ranges", _vec_normalize_ranges_test); printf("\n");
     printf("\nThe overall result of the tests: ");
     if (result == 0) { passed(); } else { failed(&result); }

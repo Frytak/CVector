@@ -3,6 +3,8 @@
 #endif
 
 #include <stdint.h>
+
+// TODO: Reorganize the test data
 const int INSERT_DATA1[] = {12, 64, 0, -23};
 const int INSERT_DATA1_LEN = 4;
 const int INSERT_DATA1_SIZE = sizeof(int);
@@ -11,6 +13,8 @@ const int DATA1[] = {5, 3, 98, 12, 52, 0, -12};
 const int DATA1_LEN = 7;
 const int DATA1_CAP = 8;
 const int DATA1_SIZE = sizeof(int);
+// TEMPORARY!
+const int DATA1_SORTED[] = {-12, 0, 3, 5, 12, 52, 98}; 
 
 const int DATA2[] = {5, 3, 98, 12, 52, 1, -12, 0, 129}; 
 const int DATA2_LEN = 9;
@@ -47,6 +51,11 @@ const char DATA7[][6] = {};
 const int DATA7_LEN = 0;
 const int DATA7_CAP = 0;
 const int DATA7_SIZE = sizeof(char[6]);
+
+
+
+
+
 
 const uint8_t DATA_U8[] = {255, 43, 0, 78, 12, 99};
 const int DATA_U8_LEN = 6;

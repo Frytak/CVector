@@ -19,6 +19,7 @@ extern const int DATA1[];
 extern const int DATA1_LEN;
 extern const int DATA1_CAP;
 extern const int DATA1_SIZE;
+extern const int DATA1_SORTED[];
 
 /// len = 9
 /// cap = 16

@@ -13,7 +13,7 @@
 //     - Some test are lacking
 
 VecConfig VEC_CONFIG = {
-    false, // bool PRINT_WITH_COLORS
+    true, // bool PRINT_WITH_COLORS
     false, // bool FPRINT_WITH_COLORS
     32, // uint8_t TIMSORT_RUN_SIZE
 };
@@ -607,25 +607,41 @@ VEC_RESULT vec_binary_search(Vector *vec, VEC_RESULT (*comp)(void *vec_item, voi
     return VECR_NOT_FOUND;
 }
 
-//void _vec_insertion_sort(Vector *vec) {
-//    for (size_t i = 0; i < vec->len; i++) {
-//        for (size_t j = i; j >= 0; j--) {
-//            if (*(int*)vec_get_unchecked(vec, j) <= *(int*)vec_get_unchecked(vec, i)) {
-//
-//            }
-//        }
-//    }
-//}
+// TODO: extract the `comp` function as its' own type
+// TODO: Clean up
+void vec_insertion_sort(Vector *vec, VEC_RESULT (*comp)(void *vec_item_left, void *vec_item_right)) {
+    for (size_t i = 1; i < vec->len; i++) {
+        // TODO: Binary search can be used here, but it needs to be modified so that
+        // it returns and index even when the value was not found, but a place with
+        // nearby equal value is. Binary search might be less efficient on smaller sets,
+        // should add benchmarks to test it out.
+        for (size_t j = i; j >= 0; j--) {
+            if (comp(vec_get(vec, j-1), vec_get(vec, i)) != VECR_LEFT) {
+                void *value = malloc(vec->size);
+
+                memcpy(value, vec_get(vec, i), vec->size);
+                memcpy(vec_get(vec, j), vec_get(vec, j-1), (i-(j-1))*vec->size);
+                memcpy(vec_get(vec, j), value, vec->size);
+
+                free(value);
+                break;
+            }
+        }
+
+    }
+}
 
 //void vec_sort_unchecked(Vector *vec) {
 //}
+
+// TODO: Rename those functions and their documentation, only one `comp` type function is nessecarry. The binary one works with everything.
 
 /// Comp function of binary search for `ints`
 VEC_RESULT vbsc_int(void *current_num, void *searched_num) {
     if (*(int*)current_num > *(int*)searched_num) { return VECR_LEFT; }
     if (*(int*)current_num < *(int*)searched_num) { return VECR_RIGHT; }
     if (*(int*)current_num == *(int*)searched_num) { return VECR_FOUND; }
-    return -1;
+    return VECR_UNKNOWN_ERROR;
 }
 
 /// Comp function of binary search for end of line in an zeroed out (from the right side) buffer
@@ -902,7 +918,6 @@ uint8_t vec_read_file(Vector *vec, char file_name[], size_t *bytes_written, bool
             // Set the lenght
             line.len = line.cap;
 
-            // TODO: Full error handling
             switch (vec_binary_search(&line, vbsc_rf, line.cap/2, line.cap, &index, NULL)) {
                 case VECR_OK: { vec_reserve(&line, line.cap - 2); goto line_read; }
                 case VECR_NOT_FOUND: { break; }

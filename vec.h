@@ -75,6 +75,8 @@ typedef uint8_t VEC_RESULT;
 /// `comp` is NULL
 #define VECR_NULL_COMP 82
 
+#define VECR_UNKNOWN_ERROR 255
+
 typedef enum {
     VPT_U8, // Format specifier: `%hhu`.
     VPT_I8, // Format specifier: `%hhi`.
@@ -160,6 +162,8 @@ VEC_RESULT vbsc_rf(void *current_char, void *_);
 VEC_RESULT vec_find_first(Vector *vec, bool (*comp)(void *vec_item, void *searched), size_t beg, size_t end, size_t *index, void *searched);
 bool vc_int(void *current_num, void *searched_num);
 bool vc_char(void *current_num, void *searched_num);
+
+void vec_insertion_sort(Vector *vec, VEC_RESULT (*comp)(void *vec_item, void *searched));
 
 bool vec_is_partial_eq(Vector *vec1, Vector *vec2);
 bool vec_is_partial_eq_s(Vector *vec1, Vector *vec2);
